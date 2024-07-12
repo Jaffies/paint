@@ -1,0 +1,1 @@
+print('batching example placeholder')
