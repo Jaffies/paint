@@ -9,11 +9,10 @@ The best painting library, that replaces surface library!
 ![3](https://media.discordapp.net/attachments/682720535234609160/1261103049519136899/1f0d08c134c69142.png?ex=669265fd&is=6691147d&hm=344991f1c794614ea81843cdcfcf336b4937ed5474b43339e675206f971e1555&=&format=webp&quality=lossless&width=780&height=444)
 
 ### Gradients
-[Video 1](https://cdn.discordapp.com/attachments/682720535234609160/1261003433243185183/2024-07-11_21-51-26.mp4?ex=66920936&is=6690b7b6&hm=6702bf705a00cc3054cddb8f6d267f81063f12049f5342e8ea34f030d7a716e3&)
-[Video 2](https://cdn.discordapp.com/attachments/682720535234609160/1260645610596466739/hover.mp4?ex=6692b637&is=669164b7&hm=0b038626f345c6ace299438a9cb842f8cdf34757bdf9fc0fff661f01bf08de95&)
-[Video 3](https://cdn.discordapp.com/attachments/682720535234609160/1260629632022085783/2024-07-10_21-11-21.mp4?ex=6692a755&is=669155d5&hm=5747745e67ca6a4777ef594ad87040ce3da2c6ea21af1cbf3cb30ff202b64c40&)
-[Video 4](https://cdn.discordapp.com/attachments/682720535234609160/1260628811263901878/2024-07-10_21-05-52.mp4?ex=6692a691&is=66915511&hm=96c393fb0bdc6df742e8ac3cb5ebf61b52435b64e6402ebe7dcd39370a750fe8&)
-
+![Video 1](https://github.com/user-attachments/assets/6d8730be-8c57-4c73-8123-06ecc50f9e84)
+![Video 2](https://github.com/user-attachments/assets/ef57ba80-403b-451a-8ded-442b81a3a3bf)
+![Video 4](https://github.com/user-attachments/assets/da65e394-2f1d-4d22-8efe-57c74757681e)
+![Video 4](https://github.com/user-attachments/assets/b6f17992-ac35-46b4-a044-3c46ec13a79c)
 ### Textures ;)
 ![8](https://media.discordapp.net/attachments/682720535234609160/1260663746406256720/ae8c05b95d0eb68f.png?ex=6692c71b&is=6691759b&hm=352071d659fc9423e38b52fe7fbda89003cad6eef4435107b19ae39424b2c45b&=&format=webp&quality=lossless)
 
