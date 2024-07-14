@@ -6,9 +6,7 @@
 ---@field boldText fun(parent:Panel, text:string) : nil
 ---@field footer fun(parent:Panel, height:number) : nil
 ---@field create fun() : nil
----@field controls table<string, {name:string, func:fun():Panel, icon:Material}> # Controls to be added to the examples menu
----@field addControl fun(name:string, func:fun():Panel, icon:Material) : nil
-
+---@field addHelpTab fun( name:string, icon:string, func:fun():Panel ) : nil
 local examples = {
 	controls = {}
 }
@@ -134,9 +132,7 @@ end
 
 --#endregion Example Formatting Functions
 
-
-function examples.create()
-	local frame = vgui.Create('DFrame')
+function examples.showHelp()
 
 	frame:SetSize(640, 480)
 	frame:Center()

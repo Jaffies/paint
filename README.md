@@ -16,4 +16,4 @@ The best painting library, that replaces surface library!
 ### Textures ;)
 ![8](https://media.discordapp.net/attachments/682720535234609160/1260663746406256720/ae8c05b95d0eb68f.png?ex=6692c71b&is=6691759b&hm=352071d659fc9423e38b52fe7fbda89003cad6eef4435107b19ae39424b2c45b&=&format=webp&quality=lossless)
 
-A lot of examples can be seen by ``lua_run_cl paint.examples.create()``
+A set of examples can be seen in-game by running ``lua_run_cl paint.examples.showHelp()`` in the console.
