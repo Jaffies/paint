@@ -1,6 +1,6 @@
-paint.examples.addControl('Rects', function()
+paint.examples.addControl( 'Rects', function()
 	local scroll = vgui.Create('DScrollPanel')
-	scroll:Dock(FILL)
+	scroll:Dock( FILL )
 
 	scroll.Paint = function(self)
 		paint.startPanel(self, false, true)
@@ -10,48 +10,80 @@ paint.examples.addControl('Rects', function()
 		paint.endPanel(false, true)
 	end
 
-	local label = scroll:Add('DLabel')
-	label:SetAutoStretchVertical(true)
-	label:Dock(TOP)
-	label:SetColor(color_black)
-	label:SetText([[paint.rects!
-Rects. Why they are better than default ones?
-1) They support linear gradients per corner!
-2) They support batching. (same as lines!)
+	-- Intro
+	paint.examples.title( scroll, "Rectangles - paint.rects" )
+	paint.examples.text( scroll,
+		[[What makes paint rectangles different from surface and draw rectangles?
+		1) Support for linear, per-corner gradients!
+		2) Vastly improved performance when drawing multiple rectangles, thanks to batching!]]
+	)
 
-Syntax:
-1) paint.lines.drawRect(startX, startY, w, h, colors, material?, u1?, v1?, u2?, v2)
--material can be nil. vgui/white will be used instead
--colors is either the table of colors (i.e {color_white, color_white, color_black, color_black}) or color (i.e. color_white)
--[1] - leftTop, [2] - rightTop, [3] - rightBottom, [4] - leftBottom
-u1, v1 - start U, V coordinates (from 0 to 1)
-u2, v2 - end U, V coordinates (from 0 to 1)
-2) paint.rects.startBatching() - starts rects specific batching
-3) lines.rects.stopBatching() - ends rects specific batching and draws final result.
-Example #1:
-]])
-	label:SetWrap(true)
-	label:DockMargin(15, 15, 15, 0)
+	paint.examples.header( scroll, "Functions" )
 
-	local richText = scroll:Add('paint.markupRichText')
-	richText:SetMarkupText([[
+	-- Start batching
+	paint.examples.boldText( scroll, "paint.rects.startBatching()" )
+	paint.examples.text( scroll,
+		[[Begins batching rectangles together to draw them all at once with greatly improved performance.
+		This is primarily useful when drawing a large number of rectangles.
+		Note: All rectangles drawn after this function is called will be batched until stopBatching() is called.]]
+	)
+
+	-- Draw rect
+	paint.examples.boldText( scroll, "paint.rects.drawRect( startX, startY, w, h, colors, material?, u1?, v1?, u2?, v2 ) " )
+	paint.examples.text( scroll,
+		[[Draws a rectangle with the specified parameters.
+
+		Arguments:
+		- startX, startY :  number - position of the rectangle
+		- w, h :  number - width and height of the rectangle
+		- material :  Material - Either a Material, or nil.  Default: vgui/white
+		- colors :  Color[ ] or Color - Either a table of Colors, or a single Color.  
+		-      If it is a table, it must have 4 elements, one for each corner.
+		-      The order of the corners is:
+		-      1. Top-Left 
+		-      2. Top-Right
+		-      3. Bottom-Right 
+		-      4. Bottom-Left
+		- u1, v1 :  number (0 to 1) - The texture U,V coordinates of the Top-Left corner of the rectangle.
+		- u2, v2 :  number (0 to 1) - The texture U,V coordinates of the Bottom-Right corner of the rectangle.]]
+	)
+
+	-- Stop batching
+	paint.examples.boldText( scroll, "paint.rects.stopBatching()" )
+	paint.examples.text( scroll,
+		[[Finishes batching rects and draws all rects created bny paint.rects.drawRect since startBatching() was called.]]
+	)
+
+	-- Example 1
+	paint.examples.header( scroll, "Example 1" )
+	paint.examples.text( scroll,
+		[[Drawing colored rectangles with a material.
+		]]
+	)
+
+	paint.examples.subheader( scroll, "Code" )
+
+	local example1Code = scroll:Add( "paint.markupRichText" )
+	example1Code:SetMarkupText([[
 <k>local <v>mat <k>= <f>Material<e>(<s>'icon16/application_xp.png'<e>)
 <f>paint.rects.drawRect<e>(<n>0<F>, <n>0<F>, <n>64<F>, <n>64<F>, <v>color_white<F>, <k>mat<F>, <n>0.5<F>, <n>0<F>, <n>1<F>, <n>0.75<e>)
 <f>paint.rects.drawRect<e>(<n>64<F>, <n>0<F>, <n>64<F>, <n>64<F>, <k>{<f>Color<e>(<n>255<F>, <n>0<F>, <n>0<e>)<F>, <f>Color<e>(<n>0<F>, <n>255<F>, <n>0<e>)<F>, <f>Color<e>(<n>0<F>, <n>0<F>, <n>255<e>)<F>, <v>color_white<k>}<F>, <v>mat<e>)
 <f>paint.rects.drawRect<e>(<n>128<F>, <n>0<F>, <n>64<F>, <n>64<F>, <k>{<f>Color<e>(<n>255<F>, <n>0<F>, <n>0<e>)<F>, <f>Color<e>(<n>0<F>, <n>255<F>, <n>0<e>)<F>, <f>Color<e>(<n>0<F>, <n>0<F>, <n>255<e>)<F>, <v>color_white<k>}<e>)
 <c>--if material is nil, then vgui/white will be used
 ]])
-	richText:Dock(TOP)
-	richText:DockMargin(15, 0, 15, 15)
-	richText:SetTall(80)
+	example1Code:Dock( TOP )
+	example1Code:DockMargin( 15, 0, 15, 15 )
+	example1Code:SetTall( 80 )
 
-	local panel = scroll:Add('DPanel')
-	panel:SetPaintBackground(true)
-	panel:Dock(TOP)
-	panel:SetTall(64)
-	panel:DockMargin(15, 0, 15, 15)
+	paint.examples.subheader( scroll, "Result" )
 
-	panel.Paint = function(self, w, h)
+	local example1Result = scroll:Add('DPanel')
+	example1Result:SetPaintBackground(true)
+	example1Result:Dock(TOP)
+	example1Result:SetTall(64)
+	example1Result:DockMargin(15, 0, 15, 15)
+
+	example1Result.Paint = function(self, w, h)
 		surface.SetDrawColor(50, 50, 50, 200)
 		surface.DrawRect(0, 0, w, h)
 		paint.startPanel(self)
@@ -62,38 +94,37 @@ Example #1:
 		paint.endPanel()
 	end
 
-	local label2 = scroll:Add('DLabel')
-	label2:SetAutoStretchVertical(true)
-	label2:Dock(TOP)
-	label2:SetColor(color_black)
-	label2:SetText([[It was the simpliest example! Let's dive into rect batching!
-When you should use it? You should use it when you draw a lot of rects, and therefore you need
-to save draw calls to make it faster
+	-- Example 2
+	paint.examples.header( scroll, "Example 2" )
 
-Example #2:
-]])
-	label2:SetWrap(true)
-	label2:DockMargin(15, 15, 15, 0)
+	paint.examples.text( scroll,
+		[[Drawing 25 rectangles with improved performance by using batching.
+		]]
+	)
 
-	local richText2 = scroll:Add('paint.markupRichText')
-	richText2:SetMarkupText([[
+	paint.examples.subheader( scroll, "Code" )
+
+	local example2Code = scroll:Add('paint.markupRichText')
+	example2Code:SetMarkupText([[
 <f>paint.rects.startBatching<e>() <c>--start batching, next draws will be batched untill stopBatching() will be called
 <k>for <v>i <k>= <n>1<F>, <n>25 <k>do
 	<f>paint.rects.drawRect<e>(<v>i <k>* <n>15<F>, <n>0<F>, <n>15<F>, <n>50<F>, <k>{<v>color_white<F>, <v>color_black<F>, <v>color_black<F>, <v>color_white<k>}<e>) <c>--It doesn't actually draw anything, just stores it to the mesh
 <k>end
 <f>paint.rects.stopBatching<e>() <c>--it draws all rects as one whole mesh
 ]])
-	richText2:Dock(TOP)
-	richText2:DockMargin(15, 0, 15, 15)
-	richText2:SetTall(100)
+	example2Code:Dock(TOP)
+	example2Code:DockMargin(15, 0, 15, 15)
+	example2Code:SetTall(100)
 
-	local panel2 = scroll:Add('DPanel')
-	panel2:SetPaintBackground(true)
-	panel2:Dock(TOP)
-	panel2:SetTall(64)
-	panel2:DockMargin(15, 0, 15, 15)
+	paint.examples.subheader(scroll, "Result")
 
-	panel2.Paint = function(self, w, h)
+	local example2Result = scroll:Add('DPanel')
+	example2Result:SetPaintBackground(true)
+	example2Result:Dock(TOP)
+	example2Result:SetTall(64)
+	example2Result:DockMargin(15, 0, 15, 15)
+
+	example2Result.Paint = function(self, w, h)
 		surface.SetDrawColor(50, 50, 50, 200)
 		surface.DrawRect(0, 0, w, h)
 		paint.startPanel(self, true, true)
