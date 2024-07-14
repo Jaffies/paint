@@ -24,7 +24,7 @@ local paint = {}
 
 
 	Coded by @jaffies, aka @mikhail_svetov (formely @michael_svetov) in discord.
-	Thanks to A1steaksea, PhoenixF and other people in gmod discord for various help
+	Thanks to A1steaksa, PhoenixF and other people in gmod discord for various help
 
 --]]
 
