@@ -1,16 +1,4 @@
-paint.examples.addControl('Lines', function()
-	local scroll = vgui.Create('DScrollPanel')
-	scroll:Dock(FILL)
-
-	scroll.Paint = function(self)
-		paint.startPanel(self, false, true)
-	end
-
-	scroll.PaintOver = function(self)
-		paint.endPanel(false, true)
-	end
-
-	local label = scroll:Add('DLabel')
+paint.examples.addHelpTab( "Lines", "icon16/user.png", function( panel )
 	label:SetAutoStretchVertical(true)
 	label:Dock(TOP)
 	label:SetColor(color_black)

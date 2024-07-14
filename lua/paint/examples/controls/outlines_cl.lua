@@ -1,39 +1,4 @@
-paint.examples.addControl('Outlines', function()
-	local scroll = vgui.Create('DScrollPanel')
-	scroll:Dock(FILL)
-
-	scroll.Paint = function(self)
-		paint.startPanel(self, false, true)
-	end
-
-	scroll.PaintOver = function(self)
-		paint.endPanel(false, true)
-	end
-
-	local label = scroll:Add('DLabel')
-	label:SetAutoStretchVertical(true)
-	label:Dock(TOP)
-	label:SetColor(color_black)
-	label:SetMouseInputEnabled(false)
-	label:SetText([[paint.outlines!
-Outlines are the only shape that default gmod doesn't have at all!
-Why you should use outlines instead of drawing them with stensils and paint.roundedBox?
-1) They support materials!
-2) They support gradients between inner and outer bounds!
-
-Syntax:
-1) paint.outlines.drawOutline(radius, x, y, w, h, colors, material?, left, top?, right?, bottom?)
-2) paint.roundedBoxes.roundedBoxEx(radius, x, y, w, h, colors, topLeft, topRight, bottomRight, bottomLeft, material? left, top?, right?, bottom?)
--- colors is either a table of 2 colors {innerBound, outerBound}, or color
--- material can be nil, vgui/white will be used instead
---left, top, right, bottom are outline widths at their sides. If left is specified, then left = outlineThickness
-if left and top will be specified, then left = outlineXThickness, top = outlineYthickness
--- topLeft, topRight, bottomRight, bottomLeft - are a booleans, representing if you want to round that corner. false means don't round it, true - round it.
-
-Example #1:
-]])
-	label:SetWrap(true)
-	label:DockMargin(15, 15, 15, 0)
+paint.examples.addHelpTab( "Outlines", 'icon16/user.png', function( panel )
 
 	local richText = scroll:Add('paint.markupRichText')
 	richText:SetMarkupText([[

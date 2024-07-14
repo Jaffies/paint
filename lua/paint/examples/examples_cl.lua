@@ -149,9 +149,8 @@ function examples.showHelp()
 	frame:MakePopup()
 end
 
-
-function examples.addControl(name, func, icon)
-	examples.controls[name] = {name = name, func = func, icon = icon}
+function examples.addHelpTab( name, icon, func )
+	examples.controls[#examples.controls + 1] = { name = name, func = func, icon = icon }
 end
 
 --#region Load Examples

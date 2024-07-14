@@ -1,16 +1,8 @@
-paint.examples.addControl('Other stuff', function()
-	local scroll = vgui.Create('DScrollPanel')
-	scroll:Dock(FILL)
+paint.examples.addHelpTab( "VGUI Info", "icon16/user.png", function( panel )
 
-	scroll.Paint = function(self)
-		paint.startPanel(self, false, true)
-	end
+	paint.examples.title( panel, "VGUI Usage Information" )
 
-	scroll.PaintOver = function(self)
-		paint.endPanel(false, true)
-	end
-
-	local label = scroll:Add('DLabel')
+	local label = panel:Add('DLabel')
 	label:SetAutoStretchVertical(true)
 	label:Dock(TOP)
 	label:SetColor(color_black)
@@ -35,7 +27,4 @@ Please, keep in mind that this library is still in development. You can help dev
 ]])
 	label:SetWrap(true)
 	label:DockMargin(15, 15, 15, 0)
-
-	return scroll
-end,
-'icon16/user.png')
+end )

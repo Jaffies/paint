@@ -1,14 +1,4 @@
-paint.examples.addControl( 'Rects', function()
-	local scroll = vgui.Create('DScrollPanel')
-	scroll:Dock( FILL )
-
-	scroll.Paint = function(self)
-		paint.startPanel(self, false, true)
-	end
-
-	scroll.PaintOver = function(self)
-		paint.endPanel(false, true)
-	end
+paint.examples.addHelpTab( "Rects", "icon16/user.png", function( panel )
 
 	-- Intro
 	paint.examples.title( scroll, "Rectangles - paint.rects" )
