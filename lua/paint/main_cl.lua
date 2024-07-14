@@ -4,6 +4,7 @@
 ---@field rects rects
 ---@field outlines outlines
 ---@field batch batch
+---@field examples paint.examples
 local paint = {}
 
 ---@alias gradients Color | Color[]
