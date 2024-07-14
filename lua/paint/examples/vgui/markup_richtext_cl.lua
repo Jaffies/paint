@@ -1,4 +1,6 @@
 --- Made fast, no clean code as it's not part of library itself.
+
+---@class paint.markupRichText : RichText
 local PANEL = {}
 
 -- f = Function
