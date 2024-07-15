@@ -247,7 +247,7 @@ do
 	function roundedBoxes.roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2)
 		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors, u1, v1, u2, v2)
 
-		local meshObj = cachedRoundedBoxMeshes[id] 
+		local meshObj = cachedRoundedBoxMeshes[id]
 
 		if meshObj == nil then
 			meshObj = meshConstructor()

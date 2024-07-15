@@ -1,41 +1,38 @@
-paint.examples.addControl('Other stuff', function()
-	local scroll = vgui.Create('DScrollPanel')
-	scroll:Dock(FILL)
+paint.examples.addHelpTab( "VGUI Info", "icon16/user.png", function( panel )
 
-	scroll.Paint = function(self)
-		paint.startPanel(self, false, true)
-	end
+	-- Intro
+	paint.examples.title( panel, "VGUI Usage Information" )
+	paint.examples.text( panel,
+[[Unfortunately, the paint library cannot integrate seamlessly with VGUI and Derma in the way that the surface and draw libraries do.
+This is because Meshes, which are used by the paint library, can only use absolute screen coordinates whereas the surface and draw libraries are automatically provided with panel-relative coordinates by the VGUI system.
 
-	scroll.PaintOver = function(self)
-		paint.endPanel(false, true)
-	end
+In addition, meshes cannot be clipped with the default VGUI clipping system and will behave as though it is disabled.
 
-	local label = scroll:Add('DLabel')
-	label:SetAutoStretchVertical(true)
-	label:Dock(TOP)
-	label:SetColor(color_black)
-	label:SetMouseInputEnabled(false)
-	label:SetText([[Not it's time for other stuff
-We will dive into VGUI stuff because it is important subject.
+To work around these limitations, you can use: 
+]] )
 
-Unfortunately, paint library can't work with VGUI natively.
-meshes (which are used by paint library) can use only absolute screen coordinates
-Also, they can't be clipped with default VGUI clipping. They will be drawed as if DisableCliping was set to true.
+	-- Start panel
+	paint.examples.boldText( panel, "paint.startPanel( panel, position?, boundaries? )" )
+	paint.examples.text( panel,
+[[
+Arguments:
+- panel : Panel - The panel to draw on.
+- position : boolean? - Set to true to autoamtically adjust all future paint operations to be relative to the panel.  Default: true
+- boundaries : boolean? - Set to true to enable ScissorRect to the size of the panel. Default: false
+]] )
 
-To fix this, you can use:
-paint.startPanel(panel, position, boundaries)
-paint.endPanel(position, boundaries)
--- if position == nil, then it will be set to true. Set false to manually disable position.
--- position sets (or unsets) absolute screen coordinates to relative to panel's (1st argument) position.
--- boundaries sets (or unsets) scissorRect (cliping) for panel's bounds 
+	-- End panel
+	paint.examples.boldText( panel, "paint.endPanel( position?, boundaries? )" )
+	paint.examples.text( panel,
+[[
+Arguments:
+- position : boolean? - Set to true to autoamtically adjust all future paint operations to be relative to the panel.  Default: true
+- boundaries : boolean? - Set to true to enable ScissorRect to the size of the panel. Default: false
 
-you need to have same arguments for position and boundaries between start and end panel functions.
+Note: You need to have same arguments for position and boundaries between start and end panel functions.
 
-Please, keep in mind that this library is still in development. You can help developing this library in https://github.com/jaffies/paint
-]])
-	label:SetWrap(true)
-	label:DockMargin(15, 15, 15, 0)
+Please, keep in mind that this library is still in development. 
+You can help the project by contributing to it at: https://github.com/jaffies/paint
+]] )
 
-	return scroll
-end,
-'icon16/user.png')
+end )

@@ -1,4 +1,6 @@
 --- Made fast, no clean code as it's not part of library itself.
+
+---@class paint.markupRichText : RichText
 local PANEL = {}
 
 -- f = Function
@@ -88,10 +90,19 @@ function PANEL:SetTall(px)
 	self.tall = px
 end
 
+function PANEL:SetFont( fontName )
+	self.FontName = fontName
+end
+
 function PANEL:PerformLayout()
 	self:SetPaintBackgroundEnabled(true)
 	self:SetBGColorEx(colors['b']:Unpack())
 	self:SetPaintBorderEnabled(true)
+	if self.FontName then
+		if self:GetFont() ~= self.FontName then
+			self:SetFontInternal(self.FontName)
+		end
+	end
 end
 
 vgui.Register('paint.markupRichText', PANEL, 'RichText')
