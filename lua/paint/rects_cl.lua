@@ -30,7 +30,7 @@ do
 			rightTop,
 			{ pos = vector(endX, endY), color = colors[3], u = u2, v = v2 }
 		}
-	end--]] 
+	end--]]
 
 	local meshBegin = mesh.Begin
 	local meshEnd = mesh.End
