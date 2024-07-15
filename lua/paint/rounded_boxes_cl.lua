@@ -38,7 +38,7 @@ do
 	---@param v2 number
 	function roundedBoxes.generateSingleMesh(createVertex, mesh, radius, x, y, endX, endY, leftTop, rightTop, rightBottom, leftBottom, colors, u1, v1, u2, v2)
 		local count = 6
-		local vertsPerEdge = clamp(radius * 0.6, 3, 8)
+		local vertsPerEdge = clamp(radius / 2, 3, 24)
 
 		local isRadiusBig = radius > 6
 
