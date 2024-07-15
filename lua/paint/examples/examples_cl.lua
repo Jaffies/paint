@@ -1,18 +1,18 @@
 ---@class paint.examples
----@field title fun(parent:Panel, text:string) : nil
----@field header fun(parent:Panel, text:string) : nil
----@field subheader fun(parent:Panel, text:string) : nil
----@field text fun(parent:Panel, text:string) : nil
----@field boldText fun(parent:Panel, text:string) : nil
----@field footer fun(parent:Panel, height:number) : nil
+---@field title fun( parent:Panel, text:string ) : nil
+---@field header fun( parent:Panel, text:string ) : nil
+---@field subheader fun( parent:Panel, text:string ) : nil
+---@field text fun( parent:Panel, text:string ) : nil
+---@field boldText fun( parent:Panel, text:string ) : nil
+---@field code fun( parent:Panel, text:string ) : nil
+---@field result fun( parent:Panel, height:number|integer|fun( self:Panel, width:number, height:number )?, drawFunc:fun( self:Panel, width:number, height:number )? )
 ---@field create fun() : nil
----@field addHelpTab fun( name:string, icon:string, func:fun():Panel ) : nil
+---@field controls table<string, { name:string, func:fun( panel:Panel ):nil, icon:string }> # Controls to be added to the examples menu
+---@field addHelpTab fun( name:string, icon:string, func:fun( panel:Panel ):nil ):nil
 local examples = {
 	controls = {}
 }
 paint.examples = examples
-
-local COLOR_BACKGROUND = Color( 148, 152, 156 )
 
 --#region Fonts
 
@@ -51,6 +51,14 @@ surface.CreateFont( boldTextFont, {
 local textFont = "paint_examples_text"
 surface.CreateFont( textFont, {
 	font = "Roboto",
+	size = 16,
+	weight = 500,
+	antialias = true
+} )
+
+local codeFont = "paint_examples_code"
+surface.CreateFont( codeFont, {
+	font = "Courier New",
 	size = 16,
 	weight = 500,
 	antialias = true
@@ -130,20 +138,89 @@ function examples.text( parent, text )
 	label:DockMargin( 15, 5, 15, 0 )
 end
 
+--- Adds a code block to the parent panel
+---@param parent Panel
+---@param text string
+function examples.code( parent, text )
+	local lines = string.Explode( "\n", text )
+	local linesNeeded = 0
+	for _, line in ipairs( lines ) do
+		-- Add a line for every 80 characters
+		linesNeeded = linesNeeded + math.ceil( #line / 80 )
+	end
+
+	local fontHeight = draw.GetFontHeight( codeFont )
+	local lineHeight = fontHeight + 2
+	local totalHeight = linesNeeded * lineHeight
+
+	local markup = parent:Add( "paint.markupRichText" )
+	markup:SetFont( codeFont )
+	markup:SetMarkupText( string.Trim( text ) )
+	markup:Dock( TOP )
+	markup:DockMargin( 15, 0, 15, 15 )
+	markup:SetTall( totalHeight )
+	markup:InvalidateLayout()
+end
+
+--- Adds a result block to the parent panel
+---@param parent Panel
+---@param height number|integer|fun( self:Panel, width:number, height:number ):nil? Height of the result panel.  Defaults to 80.
+---@param drawFunc fun( self:Panel, width:number, height:number )?
+function examples.result( parent, height, drawFunc )
+
+	local innerHeight
+	local innerDrawFunc
+	if isfunction( height ) then
+		innerDrawFunc = height
+		innerHeight = 80
+	else
+		innerDrawFunc = drawFunc
+		innerHeight = height or 80
+	end
+
+	local result = parent:Add( "DPanel" )
+	result:SetPaintBackground( true )
+	result:SetTall( innerHeight )
+	result:Dock( TOP )
+	result:DockMargin( 15, 0, 15, 15 )
+	result.Paint = innerDrawFunc
+end
+
 --#endregion Example Formatting Functions
 
 function examples.showHelp()
+	local frame = vgui.Create("DFrame" )
 
-	frame:SetSize(640, 480)
+	frame:SetSize(
+		math.min( 700, ScrW() ),
+		math.min( 500, ScrH() )
+	)
 	frame:Center()
-	frame:SetTitle('Paint Library Examples')
-	frame:SetSizable(true)
+	frame:SetTitle( "Paint Library Examples" )
+	frame:SetSizable( true )
 
-	local propertySheet = frame:Add('DPropertySheet')
-	propertySheet:Dock(FILL)
+	local propertySheet = frame:Add( "DPropertySheet" )
+	propertySheet:Dock( FILL )
 
-	for k, v in pairs(examples.controls) do
-		propertySheet:AddSheet(v.name, v.func(), v.icon)
+	local controls = examples.controls
+	for controlIndex = 1, #controls do
+		local control = controls[ controlIndex ]
+
+		local scroll = vgui.Create("DScrollPanel" )
+		scroll:Dock( FILL )
+		scroll:GetCanvas():DockPadding( 5, 15, 5, 15 )
+
+		scroll.Paint = function(self)
+			paint.startPanel(self, false, true)
+		end
+
+		scroll.PaintOver = function(self)
+			paint.endPanel(false, true)
+		end
+
+		control.func( scroll )
+
+		propertySheet:AddSheet( control.name, scroll, control.icon )
 	end
 
 	frame:MakePopup()
@@ -162,7 +239,11 @@ local function load(path)
 	end
 end
 
+-- Load custom UI elements
 load('paint/examples/vgui/markup_richtext_cl.lua')
+
+-- Load tabs
+-- Order here determines tab order
 load('paint/examples/controls/lines_cl.lua')
 load('paint/examples/controls/rects_cl.lua')
 load('paint/examples/controls/rounded_boxes_cl.lua')
