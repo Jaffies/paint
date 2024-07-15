@@ -239,17 +239,3 @@ local function load(path)
 	end
 end
 
--- Load custom UI elements
-load('paint/examples/vgui/markup_richtext_cl.lua')
-
--- Load tabs
--- Order here determines tab order
-load('paint/examples/controls/lines_cl.lua')
-load('paint/examples/controls/rects_cl.lua')
-load('paint/examples/controls/rounded_boxes_cl.lua')
-load('paint/examples/controls/outlines_cl.lua')
-load('paint/examples/controls/batch_cl.lua')
-load('paint/examples/controls/blur_cl.lua')
-load('paint/examples/controls/main_cl.lua')
-
---#endregion Load Examples
