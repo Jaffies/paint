@@ -1,92 +1,94 @@
+-- Can't trust the client not to override the default colors
+local COLOR_WHITE = Color( 255, 255, 255, 255 )
+local COLOR_BLACK = Color( 0, 0, 0, 255 )
+
 paint.examples.addHelpTab( "Lines", "icon16/user.png", function( panel )
-	label:SetAutoStretchVertical(true)
-	label:Dock(TOP)
-	label:SetColor(color_black)
-	label:SetMouseInputEnabled(false)
-	label:SetText([[paint.lines!
-Lines. Why they are better than default ones?
+
+	-- Intro
+	paint.examples.title( panel, "Lines - paint.lines" )
+	paint.examples.text( panel,
+[[What makes paint lines better than surface lines?
 1) They support linear gradients!
-2) They support batching.
+2) They support batching.]]
+	)
 
-Syntax:
-1) paint.lines.drawLine(startX, startY, endX, endY, startColor, endColor?)
--if endColor == nil, then endColor = startColor
-2) lines.lines.startBatching() - starts line specific batching
-3) lines.lines.stopBatching() - ends batching and draws final result.
+	paint.examples.header( panel, "Functions" )
 
-Example #1:
-]])
-	label:SetWrap(true)
-	label:DockMargin(15, 15, 15, 0)
+	paint.examples.boldText( panel, "paint.lines.startBatching()" )
+	paint.examples.text( panel, 
+[[Starts line batching. All lines drawn after this function is called will be batched until stopBatching() is called.
+Note: Batching is not shared between different types of shapes.]]
+	)
 
-	local richText = scroll:Add('paint.markupRichText')
-	richText:SetMarkupText([[
+	paint.examples.boldText( panel, "paint.lines.drawLine( startX, startY, endX, endY, startColor, endColor? )" )
+	paint.examples.text( panel,
+[[Draws a line with the specified parameters.
+
+Arguments:
+- startX, startY :  number - The position of the start of the line
+- endX, endY :  number - The position of the end of the line
+- startColor :  Color - The color of the start of the line
+- endColor :  Color - The color of the end of the line.  Default: startColor]]
+	)
+
+	paint.examples.boldText( panel, "paint.lines.stopBatching()" )
+	paint.examples.text( panel, [[Stops batching and draws final result.]] )
+
+	--- Simple Line Example
+	paint.examples.header( panel, "Simple Line Example" )
+	paint.examples.text( panel,
+[[Drawing lines with a gradient of different colors.
+]]
+	)
+
+	paint.examples.subheader( panel, "Code" )
+	paint.examples.code( panel, [[
+<c>-- Providing two colors to get a gradient line
 <f>paint.lines.drawLine<e>(<n>10<F>,<n> 20<F>,<n> 34<F>, <n>55<F>, <f>Color<e>(<n>0<F>, <n>255<F>, <n>0<e>)<F>, <f>Color<e>(<n>255<F>, <n>0<F>, <n>255<e>))
-<f>paint.lines.drawLine<e>(<n>40<F>,<n> 10<F>,<n> 74<F>, <n>40<F>, <f>Color<e>(<n>255<F>, <n>255<F>, <n>0<e>)<e>) <c>--If endColor == nil, then endColor = startColor
-]])
-	richText:Dock(TOP)
-	richText:DockMargin(15, 0, 15, 15)
-	richText:SetTall(40)
 
-	local panel = scroll:Add('DPanel')
-	panel:SetPaintBackground(true)
-	panel:Dock(TOP)
-	panel:SetTall(64)
-	panel:DockMargin(15, 0, 15, 15)
+<c>-- Only providing a single color to get a monochromatic line
+<f>paint.lines.drawLine<e>(<n>40<F>,<n> 10<F>,<n> 74<F>, <n>40<F>, <f>Color<e>(<n>255<F>, <n>255<F>, <n>0<e>)<e>)]]
+	)
 
-	panel.Paint = function(self, w, h)
-		surface.SetDrawColor(50, 50, 50, 200)
-		surface.DrawRect(0, 0, w, h)
-		paint.startPanel(self)
-			paint.lines.drawLine(10, 20, 34, 55, Color(0, 255, 0), Color(255, 0, 255))
-			paint.lines.drawLine(40, 10, 70, 40, Color(255, 255, 0))
+	paint.examples.subheader( panel, "Result" )
+	paint.examples.result( panel, function( self, width, height )
+		surface.SetDrawColor( 50, 50, 50, 200 )
+		surface.DrawRect(0, 0, width, height )
+		paint.startPanel( self )
+			paint.lines.drawLine( 10, 20, 34, 55, Color( 0, 255, 0 ), Color( 255, 0, 255 ) )
+			paint.lines.drawLine( 40, 10, 70, 40, Color( 255, 255, 0 ) )
 		paint.endPanel()
-	end
+	end )
 
-	local label2 = scroll:Add('DLabel')
-	label2:SetAutoStretchVertical(true)
-	label2:Dock(TOP)
-	label2:SetColor(color_black)
-	label2:SetMouseInputEnabled(false)
-	label2:SetText([[It was the simpliest example! Let's dive into line batching!
-When you should use it? You should use it when you draw a lot of lines, and therefore you need
-to save draw calls to make it faster
+	--- Batched Lines Example
+	paint.examples.header( panel, "Batched Lines Example" )
+	paint.examples.text( panel,
+[[Drawing 50 lines with improved performance by using batching.
+]]
+	)
 
-Example #2:
-]])
-	label2:SetWrap(true)
-	label2:DockMargin(15, 15, 15, 0)
-
-	local richText2 = scroll:Add('paint.markupRichText')
-	richText2:SetMarkupText([[
-<f>paint.lines.startBatching<e>() <c>--start batching, next draws will be batched untill stopBatching() will be called
+	paint.examples.subheader( panel, "Code" )
+	paint.examples.code( panel, [[
+<c>-- Start batching lines together
+<f>paint.lines.startBatching<e>()
 <k>for <v>i <k>= <n>1<F>, <n>50 <k>do
-	<f>paint.lines.drawLine<e>(<v>i <k>* <n>10<F>, <n>10<F>, <v>i <k>* <n>10 <k>+ <n>5<F>, <n>55<F>, <f>Color<e>(<n>0<F>, <v>i <k>* <n>255 <k>/ <n>50<F>, <n>0<e>)<F>, <f>Color<e>(<n>255<F>, <n>0<F>, <n>255<e>)) <c>--It doesn't actually draw anything, just stores it to the mesh
+   <c>-- This doesn't draw lines, it just adds them to the batch
+   <f>paint.lines.drawLine<e>(<v>i <k>* <n>10<F>, <n>10<F>, <v>i <k>* <n>10 <k>+ <n>5<F>, <n>55<F>, <f>Color<e>(<n>0<F>, <v>i <k>* <n>255 <k>/ <n>50<F>, <n>0<e>)<F>, <f>Color<e>(<n>255<F>, <n>0<F>, <n>255<e>))
 <k>end
-<f>paint.lines.stopBatching<e>() <c>--it draws all rects as one whole mesh
-]])
-	richText2:Dock(TOP)
-	richText2:DockMargin(15, 0, 15, 15)
-	richText2:SetTall(100)
+<c>-- Now that all our lines are added to the batch, we can draw them all at once
+<f>paint.lines.stopBatching<e>()
+]] )
 
-	local panel2 = scroll:Add('DPanel')
-	panel2:SetPaintBackground(true)
-	panel2:Dock(TOP)
-	panel2:SetTall(64)
-	panel2:DockMargin(15, 0, 15, 15)
-
-	panel2.Paint = function(self, w, h)
-		surface.SetDrawColor(50, 50, 50, 200)
-		surface.DrawRect(0, 0, w, h)
-		paint.startPanel(self, true, true)
+	paint.examples.subheader( panel, "Result" )
+	paint.examples.result( panel, function( self, width, height )
+		surface.SetDrawColor(50, 50, 50, 200 )
+		surface.DrawRect( 0, 0, width, height )
+		paint.startPanel( self, true, true )
 			paint.lines.startBatching()
 			for i = 1, 50 do
-				paint.lines.drawLine(i * 10, 10, i * 10 + 5, 55, Color(0, i * 255 / 50, 0), Color(255, 0, 255))
+				paint.lines.drawLine( i * 10, 10, i * 10 + 5, 55, Color( 0, i * 255 / 50, 0 ), Color( 255, 0, 255 ) )
 			end
 			paint.lines.stopBatching()
-		paint.endPanel(true, true)
-	end
-
-	return scroll
-end,
-'icon16/user.png')
+		paint.endPanel( true, true )
+	end )
+end )
