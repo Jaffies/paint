@@ -6,9 +6,9 @@ local paint = paint
 	It occupies SmallTex1 by default, keep it in mind when you use it
 ]]
 
-local convarBlur = CreateConVar('paint_blur', 5, FCVAR_ARCHIVE, 'Amount of blur that needs to apply', 0, 100)
-local convarBlurPasses = CreateConVar('paint_blur_passes', 3, FCVAR_ARCHIVE, 'Amount of blur passes that needs to apply', 0, 30)
-local convarBlurFPS = CreateConVar('paint_blur_fps', 15, FCVAR_ARCHIVE, 'How many FPS needed for blur?')
+local convarBlur = CreateConVar('paint_blur', 10, FCVAR_ARCHIVE, 'Amount of blur that needs to apply', 0, 100)
+local convarBlurPasses = CreateConVar('paint_blur_passes', 2, FCVAR_ARCHIVE, 'Amount of blur passes that needs to apply', 0, 30)
+local convarBlurFPS = CreateConVar('paint_blur_fps', 20, FCVAR_ARCHIVE, 'How many FPS needed for blur?')
 
 do
 	local texture = render.GetSmallTex1() -- main texture
@@ -37,7 +37,7 @@ do
 			setColorMaterial()
 			drawScreenQuad()
 
-			overrideAlphaWriteEnable(false, false)
+			overrideAlphaWriteEnable(false)
 			overrideColorWriteEnable(false)
 		popRenderTarget()
 

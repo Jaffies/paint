@@ -123,7 +123,7 @@ This example uses stencils to create a mask for the ripple effect.]]
 	<f>render.ClearStencil<e>()
 <k>end
 
-local <v>colorGreen <k>= <f>Color<e>(<n>255<F>, <n>0<F>, <n>0<e>)
+local <v>colorRed <k>= <f>Color<e>(<n>255<F>, <n>0<F>, <n>0<e>)
 
 <k>local <v>RIPPLE_DIE_TIME <k>= <n>1
 <k>local <v>RIPPLE_START_ALPHA <k>= <n>50
@@ -131,7 +131,7 @@ local <v>colorGreen <k>= <f>Color<e>(<n>255<F>, <n>0<F>, <n>0<e>)
 <k>function <f>button:Paint<e>(<v>w<F>, <v>h<e>)
 	<f>paint.startPanel<e>(<v>self<e>)
 		<f>mask<e>(<k>function<e>()
-			<f>paint.roundedBoxes.roundedBox<e>(<n>32<F>, <n>0<F>, <n>0<F>, <v>w<F>, <v>h<F>, <v>colorGreen<e>)
+			<f>paint.roundedBoxes.roundedBox<e>(<n>32<F>, <n>0<F>, <n>0<F>, <v>w<F>, <v>h<F>, <v>colorRed<e>)
 		<k>end<F>,
 		<k>function<e>()
 			<k>local <v>ripple <k>= <v>self.rippleEffect
@@ -166,7 +166,7 @@ end]]
 	button:Dock(TOP)
 	button:SetColor(color_white)
 	button:SetText('Button ripple effect')
-	button:SetTall(32)
+	button:SetTall(64)
 
 	local function mask(drawMask, draw)
 		render.ClearStencil()

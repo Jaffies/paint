@@ -52,5 +52,5 @@ paint_blur_fps - integer - Controls how many fps will bloored image have]]
 
 			paint.roundedBoxes.roundedBox( 32, 120, 0, 120, 64, COLOR_WHITE, mat, (x + 120) / scrW, y / scrH, (x + 240) / scrW, (y + 64) / scrH )
 		paint.endPanel()
-	end
+	end)
 end )
