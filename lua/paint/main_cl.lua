@@ -83,7 +83,6 @@ do -- Additional stuff to scissor rect.
 
         len = len + 1
 
-
         tab[len] = {x, y, endX, endY}
         setScissorRect(x, y, endX, endY, true)
     end
@@ -93,10 +92,10 @@ do -- Additional stuff to scissor rect.
         tab[len] = nil
         len = max(0, len - 1)
 
-        local tab = tab[len]
+        local newTab = tab[len]
 
-        if tab then
-            setScissorRect(tab[1], tab[2], tab[3], tab[4], true)
+        if newTab then
+            setScissorRect(newTab[1], newTab[2], newTab[3], newTab[4], true)
         else
             setScissorRect(0, 0, 0, 0, false)
         end
@@ -105,7 +104,6 @@ end
 
 do
 	-- Helper functions
-
 	-- startPanel - pops model matrix and pushes
 
 	local matrix = Matrix()

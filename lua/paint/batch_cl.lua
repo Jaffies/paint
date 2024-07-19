@@ -102,6 +102,9 @@ do
 	local startBatching = batch.startBatching
 	local stopBatching = batch.stopBatching
 
+	---@param self InjectedPanel
+	---@param x number
+	---@param y number
 	local panelPaint = function(self, x, y)
 		local iMesh = self.iMesh
 		if not iMesh then return end
@@ -116,7 +119,7 @@ do
 		local disableBoundaries = self.DisableBoundaries
 
 		setMaterial(whiteMat)
-		
+
 		startPanel(self, true, disableBoundaries ~= true)
 			meshDraw(iMesh)
 		endPanel(true, disableBoundaries ~= true)
@@ -129,6 +132,9 @@ do
 		end
 	end
 
+	---@param self InjectedPanel
+	---@param x number
+	---@param y number
 	local panelRebuildMesh = function(self, x, y)
 		resetZ()
 			local iMesh = self.iMesh
@@ -146,6 +152,9 @@ do
 		resetZ()
 	end
 
+	---@param self InjectedPanel
+	---@param x number
+	---@param y number
 	local panelOnSizeChanged = function(self, x, y)
 		local rebuildMesh = self.RebuildMesh
 
@@ -160,7 +169,20 @@ do
 		end
 	end
 
+	---@class InjectedPanel : Panel
+	---@field Paint function
+	---@field OnSizeChanged function
+	---@field OldOnSizeChanged function?
+	---@field RebuildMesh function
+	---@field DisableBoundaries boolean?
+	---@field BeforePaint function?
+	---@field AfterPaint function?
+	---@field PaintMesh function?
+	---@field iMesh IMesh?
+
+	---@param panel Panel
 	function batch.wrapPanel(panel)
+		---@cast panel InjectedPanel
 		panel.Paint = panelPaint
 		panel.OldOnSizeChanged = panel.OnSizeChanged
 		panel.OnSizeChanged = panelOnSizeChanged
@@ -181,20 +203,22 @@ do
 	---@param y3 number
 	---@param color3 Color
 	function batch.addTriangle(z, x1, y1, color1, x2, y2, color2, x3, y3, color3)
-		local batchTable = paint.batchTable
 		local len = batchTable[0]
 
 		batchTable[len + 1] = x1
 		batchTable[len + 2] = y1
 		batchTable[len + 3] = z
+---@diagnostic disable-next-line: assign-type-mismatch
 		batchTable[len + 4] = color1
 
 		batchTable[len + 5] = x2
 		batchTable[len + 6] = y2
+---@diagnostic disable-next-line: assign-type-mismatch
 		batchTable[len + 7] = color2
 
 		batchTable[len + 8] = x3
 		batchTable[len + 9] = y3
+---@diagnostic disable-next-line: assign-type-mismatch
 		batchTable[len + 10] = color3
 
 		batchTable[0] = len + 10

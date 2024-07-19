@@ -11,7 +11,7 @@ do
 
 	---@type boolean
 	local isFirst = true
-	---@type number
+	---@type number?
 	local prevU
 
 	---@type number
@@ -23,7 +23,7 @@ do
 	---@type number
 	local outlineBottom = 0
 
-	local abs, atan2 = math.abs, math.atan2
+	local atan2, max = math.atan2, math.max
 
 	---@type createVertexFunc
 	local function createVertex(x, y, u, v, colors)
@@ -97,9 +97,9 @@ do
 	---@param b number
 	function outlines.generateOutlineSingle(mesh, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b)
 		local count = 6
-		local vertsPerEdge = clamp(radius * 0.6, 3, 16)
+		local vertsPerEdge = clamp(radius / 2, 3, 24)
 
-		local isRadiusBig = radius > 6
+		local isRadiusBig = radius > 3
 
 		if isRadiusBig then
 			count = count + (rightTop and vertsPerEdge or 0)
@@ -127,7 +127,7 @@ do
 end
 
 do
-	---@type table[string, IMesh]
+	---@type {[string]: IMesh}
 	local cachedOutlinedMeshes = {}
 
 	local format = string.format
@@ -217,12 +217,24 @@ end
 do
 	local generateSingleMesh = paint.roundedBoxes.generateSingleMesh
 
+	---@type number?, number?, number?, number?
 	local outlineL, outlineT, outlineR, outlineB -- use it to get outline widths per side
+	---@type boolean?
 	local first -- to skip first vertex since it is center of rounded box
+	---@type number?, number?, number?, number?
 	local prevX, prevY, prevU, prevV
+	---@type number?
 	local z
 
 	local batch = paint.batch
+
+	local max = math.max
+
+	---@param x number
+	---@param y number
+	---@param u number
+	---@param v number
+	---@param colors {[1] : Color, [2]: Color}
 	local function createVertex(x, y, u, v, colors)
 		if first then
 			first = false
@@ -298,7 +310,7 @@ do
 
 	local incrementZ = paint.incrementZ
 
-	---Draws outline. Unbatched
+	---Draws outline. Batched
 	---@param radius number
 	---@param x number
 	---@param y number

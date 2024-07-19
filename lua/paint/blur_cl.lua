@@ -1,3 +1,4 @@
+---@class blur
 local blur = {}
 local paint = paint
 
@@ -27,7 +28,7 @@ do
 
 	function blur.generateBlur() -- used right before drawing 2D shit
 		local passes = getInt(convarBlurPasses)
-		local blur = getInt(convarBlur)
+		local blurStrength = getInt(convarBlur)
 		copyRTToTex(texture)
 
 		pushRenderTarget(texture)
@@ -43,7 +44,7 @@ do
 		-- Even if this RT doesn't use alpha channel (IMAGE_FORMAT), it stil somehow uses alpha... BAD!
 		-- At least no clearDepth
 
-		blurRT(texture, blur, blur, passes)
+		blurRT(texture, blurStrength, blurStrength, passes)
 	end
 end
 
@@ -80,6 +81,8 @@ end
 do
 	local requestBlur = blur.requestBlur
 
+	---Requests next blur update, as well as returns blurred texture
+	---@return ITexture
 	function blur.getBlurTexture()
 		requestBlur()
 		return texture
@@ -93,10 +96,15 @@ do
 		['$translucent'] = false,
 	})
 
+	---Requests next blur update, as well as returns blur material.
+	---@return IMaterial
 	function blur.getBlurMaterial()
 		requestBlur()
 		return mat
 	end
 end
+
+---@class paint
+---@field blur blur
 
 paint.blur = blur
