@@ -55,8 +55,6 @@ do
 	function paint.getZ()
 		return -1 + paint.Z / 8192
 	end
-
-	hook.Add('PostRender', 'paint.resetZ', paint.resetZ)
 end
 
 do -- Additional stuff to scissor rect.
@@ -158,6 +156,14 @@ do
 		if boundaries then
 			popScissorRect()
 		end
+	end
+
+	do -- since startPanel and endPanel sound stupid and i figured it out only now, i'll make an aliases for them
+		paint.beginPanel = paint.startPanel
+		paint.stopPanel = paint.endPanel
+
+		-- paint.beginPanel -> paint.endPanel (like in Pascal language, or mesh.Begin -> mesh.End)
+		-- paint.startPanel -> paint.stopPanel (start/stop sound cool in pairs)
 	end
 
 	--- Simple helper function which makes bilinear interpolation

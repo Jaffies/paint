@@ -90,6 +90,117 @@ do
 	end
 end
 
+do
+	local startPanel, endPanel = paint.startPanel, paint.endPanel
+	local meshDraw = FindMetaTable('IMesh').Draw
+	local meshDestroy = FindMetaTable('IMesh').Destroy
+	local resetZ = paint.resetZ
+
+	local whiteMat = Material('vgui/white')
+	local setMaterial = render.SetMaterial
+
+	local startBatching = batch.startBatching
+	local stopBatching = batch.stopBatching
+
+	local panelPaint = function(self, x, y)
+		local iMesh = self.iMesh
+		if not iMesh then return end
+
+		do
+			local beforePaint = self.BeforePaint
+			if beforePaint then
+				beforePaint(self, x, y)
+			end
+		end
+
+		local disableBoundaries = self.DisableBoundaries
+
+		setMaterial(whiteMat)
+		
+		startPanel(self, true, disableBoundaries ~= true)
+			meshDraw(iMesh)
+		endPanel(true, disableBoundaries ~= true)
+
+		do
+			local afterPaint = self.AfterPaint
+			if afterPaint then
+				afterPaint(self, x, y)
+			end
+		end
+	end
+
+	local panelRebuildMesh = function(self, x, y)
+		resetZ()
+			local iMesh = self.iMesh
+			if iMesh then 
+				meshDestroy(iMesh)
+			end
+
+			local drawFunc = self.PaintMesh
+
+			if drawFunc then
+				startBatching()
+					drawFunc(self, x, y)
+				self.iMesh = stopBatching()
+			end
+		resetZ()
+	end
+
+	local panelOnSizeChanged = function(self, x, y)
+		local rebuildMesh = self.RebuildMesh
+
+		if rebuildMesh then
+			rebuildMesh(self, x, y)
+		end
+
+		local oldOnSizeChanged = self.OldOnSizeChanged
+
+		if oldOnSizeChanged then
+			oldOnSizeChanged(self, x, y)
+		end
+	end
+
+	function batch.wrapPanel(panel)
+		panel.Paint = panelPaint
+		panel.OldOnSizeChanged = panel.OnSizeChanged
+		panel.OnSizeChanged = panelOnSizeChanged
+		panel.RebuildMesh = panelRebuildMesh
+	end
+end
+
+do
+	---Adds triangle to batching queue. If you want to manually add some figures to paint batching, then you can use this.
+	---@param z number
+	---@param x1 number
+	---@param y1 number
+	---@param color1 Color
+	---@param x2 number
+	---@param y2 number
+	---@param color2 Color
+	---@param x3 number
+	---@param y3 number
+	---@param color3 Color
+	function batch.addTriangle(z, x1, y1, color1, x2, y2, color2, x3, y3, color3)
+		local batchTable = paint.batchTable
+		local len = batchTable[0]
+
+		batchTable[len + 1] = x1
+		batchTable[len + 2] = y1
+		batchTable[len + 3] = z
+		batchTable[len + 4] = color1
+
+		batchTable[len + 5] = x2
+		batchTable[len + 6] = y2
+		batchTable[len + 7] = color2
+
+		batchTable[len + 8] = x3
+		batchTable[len + 9] = y3
+		batchTable[len + 10] = color3
+
+		batchTable[0] = len + 10
+	end
+end
+
 ---@type table current batching table
 batch.batchTable = batchTable
 

@@ -40,7 +40,7 @@ do
 		local count = 6
 		local vertsPerEdge = clamp(radius / 2, 3, 24)
 
-		local isRadiusBig = radius > 6
+		local isRadiusBig = radius > 3
 
 		if isRadiusBig then
 			count = count + (rightTop and vertsPerEdge or 0)
