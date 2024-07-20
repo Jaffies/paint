@@ -37,6 +37,7 @@ load('paint/rects_cl.lua')
 load('paint/rounded_boxes_cl.lua')
 load('paint/outlines_cl.lua')
 load('paint/blur_cl.lua')
+load('paint/circles_cl.lua')
 
 -- Load Examples
 load('paint/examples/examples_cl.lua')
@@ -56,7 +57,7 @@ load('paint/examples/controls/main_cl.lua')
 
 --#endregion Load Examples
 
-local VERSION = 1.02
+local VERSION = 1.03
 
 print('paint library has been loaded. Version is: ' .. VERSION)
 print('copyright @jaffies, aka @mikhail_svetov')
