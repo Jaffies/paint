@@ -338,6 +338,8 @@ do
 	local drawOutlineSingle = outlines.drawOutlineSingle
 	local drawOutlineBatched = outlines.drawOutlineBatched
 
+	local min = math.min
+
 	---Draws outline (extended)
 	---@param radius number
 	---@param x number
@@ -371,6 +373,8 @@ do
 		elseif r == nil then
 			r, b = l, t
 		end
+
+		radius = min(radius, w / 2, h / 2)
 
 		if batch.batching then
 			drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b)
