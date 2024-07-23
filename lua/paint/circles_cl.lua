@@ -292,8 +292,8 @@ do
 	---@param endU number
 	---@param outlineWidth number
 	---@return string id 
-	local function getId(vertexCount, startAngle, endAngle, startU, endU, outlineWidth)
-		return format('%u;%f;%f;%f;%f;%e', vertexCount, startAngle, endAngle, startU, endU, outlineWidth)
+	local function getId(color1, color2, vertexCount, startAngle, endAngle, startU, endU, outlineWidth)
+		return format('%x%x%x%x;%x%x%x%x;%u;%f;%f;%f;%f;%e', color1.r, color1.g, color1.b, color1.a, color2.r, color2.g, color2.b, color2.a, vertexCount, startAngle, endAngle, startU, endU, outlineWidth)
 	end
 
 	---@param x number
@@ -308,7 +308,7 @@ do
 	---@param endU number
 	---@param outlineWidth number # note, that this outlineWidth is between 0-1, cuz it's basically a percentage of radius
 	function circles.drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth)
-		local id = getId(vertexCount, startAngle, endAngle, startU, endU, outlineWidth)
+		local id = getId(colors[1], colors[2], vertexCount, startAngle, endAngle, startU, endU, outlineWidth)
 
 		local meshObj = cachedCircleOutlineMeshes[id]
 
