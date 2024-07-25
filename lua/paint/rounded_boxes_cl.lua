@@ -428,4 +428,29 @@ do
 	end
 end
 
+do
+	local generateSingleMesh = roundedBoxes.generateSingleMesh
+	local createdTable
+	local len
+
+	local function createVertex(x, y, u, v, _, u1, v1, u2, v2)
+		if createdTable == nil then return end
+
+		len = len + 1
+		createdTable[len] = {x = x, y = y, u = u1 + u * (u2 - u1), v = v1 + v * (v2 - v1)}
+	end
+
+	local emptyTab = {} -- We do not use colors, so fuck them and place empty table here
+
+	function roundedBoxes.generateDrawPoly(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, u1, v1, u2, v2)
+		createdTable = {}
+
+		generateSingleMesh(createVertex, nil, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, emptyTab, u1, v1, u2, v2)
+
+		local tab = createdTable
+		createdTable = nil
+		return tab
+	end
+end
+
 _G.paint.roundedBoxes = roundedBoxes
