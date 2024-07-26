@@ -5,6 +5,8 @@
 ---@field outlines outlines
 ---@field batch batch
 ---@field examples paint.examples
+---@field blur blur
+---@field circles circles
 local paint = {}
 
 ---@alias gradients Color | Color[]
