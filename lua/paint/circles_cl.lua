@@ -60,7 +60,6 @@ do
 	---Generates circle mesh with batching being used. Since it's batched, we can't use matrices, so there are also x, y, and radius arguments
 	---@param x number
 	---@param y number
-	---@param radius number
 	---@param vertexCount integer
 	---@param startAngle number
 	---@param endAngle number
@@ -225,7 +224,6 @@ do
 	local PRIMITIVE_TRIANGLE_STRIP = MATERIAL_TRIANGLE_STRIP
 	local sin, cos = math.sin, math.cos
 
-	local defaultMat = material
 
 	---Generates single circle mesh, unbatched
 	---@param vertexCount integer
