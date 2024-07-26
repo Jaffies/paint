@@ -125,7 +125,7 @@ do
 	---@param panel Panel
 	---@param pos? boolean # use panel's relative coordinates in next drawing operations? Default - yes
 	---@param boundaries? boolean # use panel's boundaries with scissor rect? Default - no
-	function paint.startPanel(panel, pos, boundaries)
+	function paint.startPanel(panel, pos, boundaries, multiply)
 		local x, y = localToScreen(panel, 0, 0)
 
 		if pos or pos == nil then
@@ -133,7 +133,7 @@ do
 			setField(matrix, 1, 4, x)
 			setField(matrix, 2, 4, y)
 
-			pushModelMatrix(matrix)
+			pushModelMatrix(matrix, multiply)
 		end
 
 		if boundaries then
@@ -173,7 +173,10 @@ do
 	---@param leftBottom integer
 	---@return number result # result of bilinear interpolation
 	function paint.bilinearInterpolation(x, y, leftTop, rightTop, rightBottom, leftBottom)
-		return (1 - y) * ( (1 - x) * leftTop + x * rightTop) + y * ((1 - x) * leftBottom + x * rightBottom)
+		if leftTop == rightTop and leftTop == rightBottom and leftTop == leftBottom then return leftTop end -- Fix (sometimes 255 alpha could get 254, probably double prescision isn't enought or smth like that)
+		local top = leftTop == rightTop and leftTop or ( (1 - x) * leftTop + x * rightTop)
+		local bottom = leftBottom == rightBottom and leftBottom or ((1 - x) * leftBottom + x * rightBottom) -- more precise checking
+		return (1 - y) * top + y * bottom
 	end
 end
 

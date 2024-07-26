@@ -57,7 +57,7 @@ load('paint/examples/controls/main_cl.lua')
 
 --#endregion Load Examples
 
-local VERSION = 1.05
+local VERSION = 1.06
 
 print('paint library has been loaded. Version is: ' .. VERSION)
 print('copyright @jaffies, aka @mikhail_svetov')

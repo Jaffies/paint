@@ -444,11 +444,13 @@ do
 
 	function roundedBoxes.generateDrawPoly(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, u1, v1, u2, v2)
 		createdTable = {}
-
+		len = 0
 		generateSingleMesh(createVertex, nil, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, emptyTab, u1, v1, u2, v2)
 
 		local tab = createdTable
+
 		createdTable = nil
+		len = nil
 		return tab
 	end
 end
