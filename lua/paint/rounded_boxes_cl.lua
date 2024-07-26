@@ -213,16 +213,29 @@ do
 	---@param v2 number
 	---@return string id
 	local function getId(radius, w, h, corners, colors, u1, v1, u2, v2)
-		local color1, color2, color3, color4 = colors[1], colors[2], colors[3], colors[4]
+		local color1, color2, color3, color4, color5 = colors[1], colors[2], colors[3], colors[4], colors[5]
 
-		return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f',
-			radius, w, h, corners,
-			color1.r, color1.g, color1.b, color1.a,
-			color2.r, color2.g, color2.b, color2.a,
-			color3.r, color3.g, color3.b, color3.a,
-			color4.r, color4.g, color4.b, color4.a,
-			u1, v1, u2, v2
-		)
+		if color5 == nil then
+			return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f',
+				radius, w, h, corners,
+				color1.r, color1.g, color1.b, color1.a,
+				color2.r, color2.g, color2.b, color2.a,
+				color3.r, color3.g, color3.b, color3.a,
+				color4.r, color4.g, color4.b, color4.a,
+				u1, v1, u2, v2
+			)
+		else
+			return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f',
+				radius, w, h, corners,
+				color1.r, color1.g, color1.b, color1.a,
+				color2.r, color2.g, color2.b, color2.a,
+				color3.r, color3.g, color3.b, color3.a,
+				color4.r, color4.g, color4.b, color4.a,
+				color5.r, color5.g, color5.b, color5.a,
+				u1, v1, u2, v2
+			)
+		end
+
 	end
 
 	---@type table<string, IMesh>
