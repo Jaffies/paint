@@ -11,7 +11,7 @@ local convarBlur = CreateConVar('paint_blur', '10', FCVAR_ARCHIVE, 'Amount of bl
 local convarBlurPasses = CreateConVar('paint_blur_passes', '2', FCVAR_ARCHIVE, 'Amount of blur passes that needs to apply', 0, 30)
 local convarBlurFPS = CreateConVar('paint_blur_fps', '20', FCVAR_ARCHIVE, 'How many FPS needed for blur?', 1, 60)
 
-local texture = GetRenderTargetEx('paint_blur_rt', 256, 256, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, bit.band(2, 256), 0, IMAGE_FORMAT_RGB888)
+local texture = GetRenderTargetEx('paint_blur_rt', 256, 256, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, bit.band(2, 256, 32768), 0, IMAGE_FORMAT_RGB888)
 
 do
 	local getInt = FindMetaTable('ConVar').GetInt
