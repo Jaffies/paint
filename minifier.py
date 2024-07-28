@@ -13,7 +13,7 @@ wrapper = """
 if SERVER then return end
 
 do
-if CLIENT and BRANCH ~= 'x64-86' then
+if CLIENT and BRANCH ~= 'x86-64' then
 print('paint library detoured mesh.Position to support (x, y, z) overload because gmod hasn\\'t updated yet on non x64-86')
 local vec = Vector()
 local vecSetUnpacked = vec.SetUnpacked
@@ -45,7 +45,7 @@ for i in files:
     with open(f'lua/paint/{i}_cl.lua', 'r') as f:
         contents.append(f.read())
 
-version = 1.05
+version = 1.07
 totalText = f'{wrapper} {" end do ".join(contents)} end print("paint library loaded! Version is {version}!")'
 
 with open('paint_minified_source.lua', 'w') as f:
