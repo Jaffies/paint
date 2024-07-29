@@ -63,7 +63,6 @@ do
 	local blurRTExpensive = render.BlurRenderTarget
 	local function blurRTCheap(rt, blur, blur, passes)
 		setMaterial(blurMaterial)
-
 		setTexture(blurMaterial, '$basetexture', rt)
 
 		for i = 1, passes do
@@ -74,12 +73,17 @@ do
  			-- Then for whatever reason gmodscreenspace
  			-- shader won't update it's $basetexture
  			-- resulting in broken passes
- 			-- and picture like it was only single pass instead of multiple
+ 			-- and picture like it was only single pass instead of multiple.
+
+ 			--ScreenEffect texutre is not used by blur at all.
+ 			--Like literally, i have to update it only for gmodscreenspace shader to work.
+ 			--That's tottally retarded.
 			updateScreenEffectTexture()
 			drawScreenQuad()
 		end 
 
-		setTexture(blurMaterial, 'basetexture', screenEffectTexture)
+		--Reseting it's basetexture to default one
+		setTexture(blurMaterial, '$basetexture', screenEffectTexture)
 	end
 
 	function blur.generateBlur(id, blur, passes, expensive) -- used right before drawing 2D shit
