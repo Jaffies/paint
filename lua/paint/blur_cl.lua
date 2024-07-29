@@ -7,16 +7,20 @@ local paint = paint
 	It doesn't ocupy smalltex1 now. Use it freely)
 ]]
 
-local CONST_BLUR = 5
-local CONST_BLUR_PASSES = 2
-local CONST_BLUR_TIME = 1 / 30
+local RT_SIZE = 256
+
+local BLUR = 20
+local BLUR_PASSES = 3
+local BLUR_TIME = 1 / 30
+
+local BLUR_EXPENSIVE = false
 
 local RT_FLAGS = bit.band(2, 256, 32768)
 local TEXTURE_PREFIX = 'paint_library_rt_'
 local MATERIAL_PREFIX = 'paint_library_material_'
 
 local textures = {
-	default = GetRenderTargetEx(TEXTURE_PREFIX .. 'default', 256, 256, 1, 2, RT_FLAGS, 0, IMAGE_FORMAT_RGBA8888)
+	default = GetRenderTargetEx(TEXTURE_PREFIX .. 'default', RT_SIZE, RT_SIZE, 1, 2, RT_FLAGS, 0, 2)
 }
 
 local textureTimes = {
@@ -34,7 +38,6 @@ local textureMaterials = {
 
 do
 	local copyRTToTex = render.CopyRenderTargetToTexture
-	local blurRT = render.BlurRenderTarget
 
 	local pushRenderTarget = render.PushRenderTarget
 	local popRenderTarget = render.PopRenderTarget
@@ -44,22 +47,54 @@ do
 
 	local overrideColorWriteEnable = render.OverrideColorWriteEnable
 	local overrideAlphaWriteEnable = render.OverrideAlphaWriteEnable
-
-	local setColorMaterial = render.SetColorMaterial
 	local drawScreenQuad = render.DrawScreenQuad
+	local updateScreenEffectTexture = render.UpdateScreenEffectTexture 
+	local setMaterial = render.SetMaterial
 
-	function blur.generateBlur(id) -- used right before drawing 2D shit
+	local blurMaterial = Material('pp/blurscreen')
+
+	local setTexture = blurMaterial.SetTexture
+	local setFloat = blurMaterial.SetFloat
+	local recompute = blurMaterial.Recompute
+
+	local screenEffectTexture = render.GetScreenEffectTexture()
+	local whiteMaterial = Material('vgui/white')
+
+	local blurRTExpensive = render.BlurRenderTarget
+	local function blurRTCheap(rt, blur, blur, passes)
+		setMaterial(blurMaterial)
+
+		setTexture(blurMaterial, '$basetexture', rt)
+
+		for i = 1, passes do
+ 			setFloat(blurMaterial, '$blur', (i / passes) * blur)
+ 			recompute(blurMaterial)
+
+			updateScreenEffectTexture()
+			drawScreenQuad()
+		end 
+
+		setTexture(blurMaterial, 'basetexture', screenEffectTexture)
+	end
+
+	function blur.generateBlur(id, blur, passes, expensive) -- used right before drawing 2D shit
 		local texToBlur = textures[id or 'default']
+
+		blur = blur or BLUR
+		passes = passes or BLUR_PASSES
+		expensive = expensive or BLUR_EXPENSIVE
 
 		copyRTToTex(texToBlur)
 
  		pushRenderTarget(texToBlur)
  			start2D()
-	 			blurRT(texToBlur, CONST_BLUR, CONST_BLUR, CONST_BLUR_PASSES)
+ 				local blurRT = expensive and blurRTExpensive or blurRTCheap
+ 				blurRT(texToBlur, blur, blur, passes)
+
 	 			overrideAlphaWriteEnable(true, true)
 	 			overrideColorWriteEnable(true, false)
 
-	 			setColorMaterial()
+	 			setMaterial(whiteMaterial)
 	 			drawScreenQuad()
 
 	 			overrideAlphaWriteEnable(false, true)
@@ -68,7 +103,7 @@ do
 
 	  		end2D()
 		popRenderTarget()
-		
+
 		-- Even if this RT doesn't use alpha channel (IMAGE_FORMAT), it stil somehow uses alpha... BAD!
 		-- At least no clearDepth
 
@@ -83,20 +118,25 @@ do
 	local generateBlur = blur.generateBlur
 
 	---utility function to request blur in next blur frame (or current)
-	function blur.requestBlur(id)
+	function blur.requestBlur(id, time, blur, passes, expensive)
 		id = id or 'default'
+		time = time or BLUR_TIME
+
 		if textureTimes[id] == nil then
-			textureTimes[id] = clock() + CONST_BLUR_TIME
+			textureTimes[id] = clock() + time
 			return
 		end
 
-
 		if id ~= 'default' and textureTimes[id] < clock() then
-			generateBlur(id)
-			textureTimes[id] = nil
+			generateBlur(id, blur, passes, expensive)
+
+			if time > 0 then
+				textureTimes[id] = nil
+			else
+				textureTimes[id] = 0
+			end
 		end
 	end
-
 
 	hook.Add('RenderScreenspaceEffects', 'paint.blur', function()
 		local time = textureTimes['default']
@@ -121,11 +161,11 @@ do
 
 	---Requests next blur update, as well as returns blurred texture
 	---@return ITexture
-	function blur.getBlurTexture(id)
+	function blur.getBlurTexture(id, time, blur, passes, expensive)
 		id = id or 'default'
 		
 		if textures[id] == nil then
-			local tex = getRenderTargetEx(TEXTURE_PREFIX .. id, 256, 256, 1, 2, RT_FLAGS, 0, IMAGE_FORMAT_RGBA8888)
+			local tex = getRenderTargetEx(TEXTURE_PREFIX .. id, RT_SIZE, RT_SIZE, 1, 2, RT_FLAGS, 0, 2)
 			textures[id] = tex
 			textureTimes[id] = 0
 
@@ -134,7 +174,7 @@ do
 			popRenderTarget()
 		end
 
-		requestBlur(id)
+		requestBlur(id, time, blur, passes, expensive)
 
 		return textures[id]
 	end
@@ -143,13 +183,13 @@ do
 
 	---Requests next blur update, as well as returns blur material.
 	---@return IMaterial
-	function blur.getBlurMaterial(id)
+	function blur.getBlurMaterial(id, time, blur, passes, expensive)
 		id = id or 'default'
 		local mat = textureMaterials[id]
 
 		if mat == nil then
 			mat = createMaterial(MATERIAL_PREFIX .. id, 'UnlitGeneric', {
-				['$basetexture'] = getBlurTexture(id):GetName(),
+				['$basetexture'] = getBlurTexture(id, time, blur, passes, expensive):GetName(),
 				['$vertexalpha'] = 1,
 				['$vertexcolor'] = 1,
 				['$model'] = 1,
@@ -160,7 +200,7 @@ do
 			return mat-- requestBlur is arleady done.
 		end
 
-		requestBlur(id)
+		requestBlur(id, time, blur, passes, expensive)
 
 		return mat
 	end

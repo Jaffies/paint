@@ -45,7 +45,7 @@ for i in files:
     with open(f'lua/paint/{i}_cl.lua', 'r') as f:
         contents.append(f.read())
 
-version = 1.07
+version = 1.08
 totalText = f'{wrapper} {" end do ".join(contents)} end print("paint library loaded! Version is {version}!")'
 
 with open('paint_minified_source.lua', 'w') as f:
