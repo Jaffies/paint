@@ -70,6 +70,11 @@ do
  			setFloat(blurMaterial, '$blur', (i / passes) * blur)
  			recompute(blurMaterial)
 
+ 			-- if you don't update screenEffect texture
+ 			-- Then for whatever reason gmodscreenspace
+ 			-- shader won't update it's $basetexture
+ 			-- resulting in broken passes
+ 			-- and picture like it was only single pass instead of multiple
 			updateScreenEffectTexture()
 			drawScreenQuad()
 		end 
