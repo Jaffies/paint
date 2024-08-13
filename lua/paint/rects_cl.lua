@@ -1,5 +1,31 @@
+---@diagnostic disable: deprecated
 local paint = paint--[[@as paint]]
 
+---	What makes paint rectangles different from surface and draw rectangles?
+---	1) Support for linear, per-corner gradients!
+---	2) Vastly improved performance when drawing multiple rectangles, thanks to batching!
+---
+--- Examples!
+---
+--- Simple Example:
+---
+---Drawing an uncolored rectangle with a material, a rectangle with a material and per-corner colors, and a rectangle with just per-color corners.
+---```lua
+--- 	local mat = Material( "icon16/application_xp.png" )
+--- 	paint.rects.drawRect( 0, 0, 64, 64, color_white, mat, 0.5, 0, 1, 0.75 )
+--- 	paint.rects.drawRect( 64, 0, 64, 64, { Color(255, 0, 0 ), Color( 0, 255, 0 ), Color( 0, 0, 255 ), color_white }, mat )
+--- 	paint.rects.drawRect( 128, 0, 64, 64, { Color(255, 0, 0 ), Color( 0, 255, 0 ), Color( 0, 0, 255 ), color_white } )
+---```
+---Batched Example
+---
+---Drawing 25 rectangles with improved performance by using batching.
+---```lua
+---paint.rects.startBatching()
+---	for i = 1, 25 do
+---		paint.rects.drawRect( i * 15, 0, 15, 50, { COLOR_WHITE, COLOR_BLACK, COLOR_BLACK, COLOR_WHITE } )
+---	end
+---paint.rects.stopBatching()
+---```
 ---@class rects
 local rects = {}
 
@@ -13,8 +39,6 @@ do
 			colors can accept only table of colors.
 			And there's no material parameter
 	]]
-
-	local vector = Vector
 
 --[[ 	function rects.generateRectMesh(startX, startY, endX, endY, colors, u1, v1, u2, v2)
 
@@ -60,6 +84,7 @@ do
 	---@param v1 number
 	---@param u2 number
 	---@param v2 number
+	---@deprecated Internal variable. Not meant to use outside
 	function rects.generateRectMesh(mesh, startX, startY, endX, endY, colors, u1, v1, u2, v2)
 		meshBegin(mesh, PRIMITIVE_QUADS, 1)
 			meshPosition(startX, endY, 0)
@@ -91,6 +116,7 @@ do
 
 	--- Draws batched rects (quads)
 	---@param array table # {x, y, endX, endY, color1, color2, color3, color4, ...}
+	---@deprecated Internal variable. Not meant to use outside
 	function rects.drawBatchedRects(array)
 		renderSetMaterial(mat)
 		meshBegin(PRIMITIVE_QUADS, array[0] / 8)
@@ -128,6 +154,7 @@ do
 	local batch = paint.batch
 
 	--- Adds rect to triangle batch queue
+	---@deprecated Internal variable. Not meant to use outside
 	---@param startX number
 	---@param startY number
 	---@param endX number
@@ -227,6 +254,7 @@ do
 	end
 
 	--- Draws single rect (quad)
+	---@deprecated Internal variable. Not meant to use outside
 	---@param x number
 	---@param y number
 	---@param w number
@@ -263,7 +291,14 @@ do
 end
 
 do --- Rect specific batching
-	-- Starts quad batching. Literally only for MEGA specific cases. Consider using paint.batch.startBatching
+
+	---Begins batching rectangles together to draw them all at once with greatly improved performance.
+	---
+	---This is primarily useful when drawing a large number of rectangles.
+	---
+	---All rectangles drawn after this function is called will be batched until stopBatching() is called.
+	---
+	---Note: Batching is not shared between different types of shapes.
 	function rects.startBatching()
 		rects.batching = {
 			[0] = 0
@@ -273,7 +308,8 @@ do --- Rect specific batching
 
 	local drawBatchedRects = rects.drawBatchedRects
 
-	--- Stops quad batching. Litterally only for MEGA specific cases. Consider using paint.batch.startBatching
+	---Finishes batching rects and draws all rects created bny paint.rects.drawRect since startBatching() was called.
+	---@see rects.startBatching
 	function rects.stopBatching()
 		rects.isBatching = false
 
@@ -317,16 +353,23 @@ do
 	local batch = paint.batch
 
 	--- Main function to draw rects
-	---@param x number
-	---@param y number
-	---@param w number
-	---@param h number
-	---@param colors gradients # Color or colors used by gradient. Can be a single color, or a table of colors
-	---@param material? IMaterial # vgui/white will be used as default material
-	---@param u1 number
-	---@param v1 number
-	---@param u2 number
-	---@param v2 number
+	---@param x number # start X position of the rectangle
+	---@param y number # start Y position of the rectangle
+	---@param w number # width of the rectangle
+	---@param h number # height of the rectangle
+	---@param colors gradients # Either a table of Colors, or a single Color.  
+		---      If it is a table, it must have 4 elements, one for each corner.
+		---
+		---      The order of the corners is:
+		---            1. Top-Left 
+		---            2. Top-Right
+		---            3. Bottom-Right 
+		---            4. Bottom-Left
+	---@param material? IMaterial # Either a Material, or nil.  Default: vgui/white
+	---@param u1 number # The texture U coordinate of the Top-Left corner of the rectangle. Default : 0
+	---@param v1 number # The texture V coordinate of the Top-Left corner of the rectangle. Default : 0
+	---@param u2 number # The texture U coordinate of the Bottom-Right corner of the rectangle. Default : 1
+	---@param v2 number # The texture V coordinate of the Bottom-Right corner of the rectangle. Default : 1
 	---@overload fun(x : number, y : number, w : number, h : number, colors: gradients, material? : IMaterial) # Overloaded variant without UV's. They are set to 0, 0, 1, 1
 	function rects.drawRect(x, y, w, h, colors, material, u1, v1, u2, v2)
 		if colors[4] == nil then
@@ -353,5 +396,4 @@ do
 	end
 end
 
---- Rects library for paint lib
 _G.paint.rects = rects

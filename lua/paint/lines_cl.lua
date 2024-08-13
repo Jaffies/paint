@@ -1,6 +1,30 @@
+---@diagnostic disable: deprecated
 local paint = paint--[[@as paint]]
 
---- Lines library
+---	Lines. Why they are good?
+---	1) They support gradients. It means that you do not need to make a lot of lines to make
+---	color grading smooth between start of segment and the end of it.
+---
+---	2) They support batching. It means that you can make a lot of lines without any performance costs
+--- Examples of paint.lines
+---
+--- Simple line example:
+---
+--- Drawing lines with a gradient of different colors.
+---```lua
+---	paint.lines.drawLine( 10, 20, 34, 55, Color( 0, 255, 0 ), Color( 255, 0, 255 ) )
+---	paint.lines.drawLine( 40, 10, 70, 40, Color( 255, 255, 0 ) )
+---```
+---Batched Lines Example:
+---
+---Drawing 50 lines with improved performance by using batching.
+---```lua
+---paint.lines.startBatching()
+---	for i = 1, 50 do
+---		paint.lines.drawLine( i * 10, 10, i * 10 + 5, 55, Color( 0, i * 255 / 50, 0 ), Color( 255, 0, 255 ) )
+---	end
+---paint.lines.stopBatching()
+---```
 ---@class lines (exact)
 ---@field drawLine function
 ---@field startBatching function
@@ -9,14 +33,6 @@ local lines = {}
 
 --- batch table
 local batch = {[0] = 0}
-
---[[
-	Lines. Why they are good?
-	1) They support gradients. It means that you do not need to make a lot of lines to make
-	color grading smooth between start of segment and the end of it.
-
-	2) They support batching. It means that you can make a lot of lines without any performance costs
---]]
 
 local PRIMITIVE_LINES = MATERIAL_LINES
 local PRIMITIVE_LINE_STRIP = MATERIAL_LINE_STRIP
@@ -42,6 +58,7 @@ do
 	---@param endY number
 	---@param startColor Color
 	---@param endColor? Color
+	---@deprecated Internal variable. Not meant to use outside
 	function lines.drawSingleLine(startX, startY, endX, endY, startColor, endColor)
 		if endColor == nil then
 			endColor = startColor
@@ -88,6 +105,7 @@ do
 	}
 
 	---Draws batched lines
+	---@deprecated Internal variable. Not meant to use outside
 	---@param array table # array with [startX:number, startY:number, startColor:Color, endColor:Color ...]
 	function lines.drawBatchedLines(array)
 		---@type number
@@ -156,7 +174,8 @@ local batching = false
 
 do -- batching functions
 
-	--- Starts batching for lines only
+	--- Starts line batching. All lines drawn after this function is called will be batched until stopBatching() is called.
+	--- Note: Batching is not shared between different types of shapes.
 	function lines.startBatching()
 		batching = true
 
@@ -164,7 +183,8 @@ do -- batching functions
 		batch[0] = 0
 	end
 
-	--- Stops batching for lines only
+	--- Stops batching and draws final result.
+	---@see lines.startBatching
 	function lines.stopBatching()
 		-- last check if it is a line loop
 
@@ -188,6 +208,7 @@ do -- batching functions
 	---@param endY number
 	---@param startColor Color
 	---@param endColor? Color
+	---@deprecated Internal variable. Not meant to use outside
 	function lines.drawBatchedLine(startX, startY, endX, endY, startColor, endColor)
 		if endColor == nil then
 			endColor = startColor
@@ -220,12 +241,13 @@ do -- drawing
 	local drawSingleLine = lines.drawSingleLine
 	local drawBatchedLine = lines.drawBatchedLine
 
-	--- Draws line. Batched/Unbatched
-	---@param startX number
-	---@param startY number
-	---@param endX number
-	---@param startColor Color
-	---@param endColor? Color
+	--- Draws a line with the specified parameters.
+	---@param startX number # The X position of the start of the line
+	---@param startY number # The Y position of the start of the line
+	---@param endX number # The X position of the end of the line
+	---@param endY number # The Y position of the end of the line
+	---@param startColor Color # The color of the start of the line
+	---@param endColor? Color  # The color of the end of the line.  Default: startColor
 	function lines.drawLine(startX, startY, endX, endY, startColor, endColor)
 		if batching then
 			drawBatchedLine(startX, startY, endX, endY, startColor, endColor)
@@ -236,5 +258,4 @@ do -- drawing
 
 end
 
---- Lines library for paint lib
 paint.lines = lines

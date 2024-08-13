@@ -5,31 +5,6 @@ local function load(path)
 	end
 end
 
-if CLIENT and BRANCH ~= 'x86-64' then
-	print('paint library detoured mesh.Position to support (x, y, z) overload because gmod hasn\'t updated yet on non x64-86')
-	local vec = Vector()
-	local vecSetUnpacked = vec.SetUnpacked
-
-
-	mesh.OldPosition = mesh.OldPosition or mesh.Position
-	---@param x number|Vector
-	---@param y? number
-	---@param z? number
-	---@overload fun(x: Vector)
-	function mesh.Position(x, y, z)
-		if y == nil then
-			---@cast x Vector
-			mesh.OldPosition(x)
-			return
-		end
-		---@cast y number
-		---@cast z number
-		---@cast x number
-		vecSetUnpacked(vec, x, y, z)
-		mesh.OldPosition(vec)
-	end
-end
-
 load('paint/main_cl.lua')
 load('paint/batch_cl.lua')
 load('paint/lines_cl.lua')
@@ -57,7 +32,7 @@ load('paint/examples/controls/main_cl.lua')
 
 --#endregion Load Examples
 
-local VERSION = 1.08
+local VERSION = 1.09
 
 print('paint library has been loaded. Version is: ' .. VERSION)
 print('copyright @jaffies, aka @mikhail_svetov')

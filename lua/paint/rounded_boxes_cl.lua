@@ -1,5 +1,104 @@
+---@diagnostic disable: deprecated
 local paint = _G.paint--[[@as paint]]
 
+--What makes paint rounded boxes better than the draw library's rounded boxes?
+--1) Support for per-corner gradients!
+--2) Improved performance when drawing multiple rounded boxes, thanks to batching!
+--3) Stencil support!
+--4) Material support!
+--5) Curviness support (squircles/superellipses support)
+--
+--Simple Example
+--Drawing rounded boxes with different corner radius and colors.
+--```lua
+-- -- A colorful rounded box
+-- paint.roundedBoxes.roundedBox( 20, 5, 5, 64, 64, {
+-- 	Color( 255, 0, 0 ), -- Top Left
+-- 	Color( 0, 255, 0 ), -- Top Right
+-- 	Color( 0, 0, 255 ), -- Bottom Right
+-- 	color_white,	-- Bottom Left
+-- 	color_black	-- Center
+-- } )
+-- -- An icon with rounded corners
+-- paint.roundedBoxes.roundedBox( 32, 72, 5, 64, 64, COLOR_WHITE, ( Material( "icon16/application_xp.png" ) ) )
+--```
+--
+--Asymmetrical Example
+--Drawing a rounded box with only the top-right and bottom-left corners rounded.
+--```lua
+--paint.roundedBoxes.roundedBoxEx( 16, 10, 10, 64, 64, COLOR_WHITE, false, true, false, true )
+--```
+--
+--Stencil Masked Example
+--```lua
+	-- local function mask(drawMask, draw)
+	-- 	render.ClearStencil()
+	-- 	render.SetStencilEnable(true)
+	--
+	-- 	render.SetStencilWriteMask(1)
+	-- 	render.SetStencilTestMask(1)
+	--
+	-- 	render.SetStencilFailOperation(STENCIL_REPLACE)
+	-- 	render.SetStencilPassOperation( STENCIL_REPLACE)
+	-- 	render.SetStencilZFailOperation(STENCIL_KEEP)
+	-- 	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+	-- 	render.SetStencilReferenceValue(1)
+	--
+	-- 	drawMask()
+	--
+	-- 	render.SetStencilFailOperation(STENCIL_KEEP)
+	-- 	render.SetStencilPassOperation(STENCIL_REPLACE)
+	-- 	render.SetStencilZFailOperation(STENCIL_KEEP)
+	-- 	render.SetStencilCompareFunction(STENCIL_EQUAL)
+	-- 	render.SetStencilReferenceValue(1)
+	--
+	-- 	draw()
+	--
+	-- 	render.SetStencilEnable(false)
+	-- 	render.ClearStencil()
+	-- end
+	--
+	-- local RIPPLE_DIE_TIME = 1
+	-- local RIPPLE_START_ALPHA = 50
+	--
+	-- function button:Paint(w, h)
+	-- 	paint.startPanel(self)
+	-- 		mask(function()
+	-- 			paint.roundedBoxes.roundedBox( 32, 0, 0, w, h, COLOR_RED )
+	-- 		end,
+	-- 		function()
+	-- 			local ripple = self.rippleEffect
+	--
+	-- 			if ripple == nil then return end
+	--
+	-- 			local rippleX, rippleY, rippleStartTime = ripple[1], ripple[2], ripple[3]
+	--
+	-- 			local percent = (RealTime() - rippleStartTime)  / RIPPLE_DIE_TIME
+	--
+	-- 			if percent >= 1 then
+	-- 				self.rippleEffect = nil
+	-- 			else
+	-- 				local alpha = RIPPLE_START_ALPHA * (1 - percent)
+	-- 				local radius = math.max(w, h) * percent * math.sqrt(2)
+	--
+	-- 				paint.roundedBoxes.roundedBox(radius, rippleX - radius, rippleY - radius, radius * 2, radius * 2, ColorAlpha(COLOR_WHITE, alpha))
+	-- 			end
+	-- 		end)
+	-- 	paint.endPanel()
+	-- end
+--```
+--
+--Animated Rainbow Colors Example
+--Drawing a rounded box with a rainbow gradient.
+--```lua
+-- local time1, time2 = RealTime() * 100, RealTime() * 100 + 30
+-- local time3 = (time1 + time2) / 2
+--
+-- local color1, color2, color3 = HSVToColor(time1, 1, 1), HSVToColor(time2, 1, 1), HSVToColor(time3, 1, 1)
+--
+-- paint.roundedBoxes.roundedBox(32, 10, 10, 300, 128, {color1, color3, color2, color3})
+-- -- Center is color3 not nil because interpolating between colors and between HSV is different
+--```
 ---@class roundedBoxes
 local roundedBoxes = {}
 
@@ -16,6 +115,17 @@ do
 
 	local sin = math.sin
 	local cos = math.cos
+
+	---@param num number
+	---@param power number
+	---@return number
+	local function fpow(num, power)
+		if num > 0 then
+			return num ^ power
+		else
+			return -(-num ^ power)
+		end
+	end
 
 	---@type Color[]
 	local centreTab = {}
@@ -36,7 +146,9 @@ do
 	---@param v1 number
 	---@param u2 number
 	---@param v2 number
-	function roundedBoxes.generateSingleMesh(createVertex, mesh, radius, x, y, endX, endY, leftTop, rightTop, rightBottom, leftBottom, colors, u1, v1, u2, v2)
+	---@param curviness number?
+	---@deprecated Internal variable. Not meant to use outside
+	function roundedBoxes.generateSingleMesh(createVertex, mesh, radius, x, y, endX, endY, leftTop, rightTop, rightBottom, leftBottom, colors, u1, v1, u2, v2, curviness)
 		local count = 6
 		local vertsPerEdge = clamp(radius / 2, 3, 24)
 
@@ -53,6 +165,8 @@ do
 			count = count + (leftBottom and 1 or 0)
 			count = count + (leftTop and 1 or 0)
 		end
+
+		curviness = 2 / (curviness or 2)
 
 		local w, h = endX - x, endY - y
 
@@ -81,7 +195,7 @@ do
 					for i = 1, vertsPerEdge - 1 do
 						local angle = halfPi * (i / vertsPerEdge)
 
-						local sinn, coss = sin(angle), cos(angle)
+						local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
 
 						local newX, newY = deltaX + sinn * radius, deltaY - coss * radius
 
@@ -102,7 +216,7 @@ do
 					for i = 1, vertsPerEdge - 1 do
 						local angle = halfPi * (i / vertsPerEdge)
 
-						local sinn, coss = sin(angle), cos(angle)
+						local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
 
 						local newX, newY = deltaX + coss * radius, deltaY + sinn * radius
 
@@ -123,7 +237,7 @@ do
 					for i = 1, vertsPerEdge - 1 do
 						local angle = halfPi * (i / vertsPerEdge)
 
-						local sinn, coss = sin(angle), cos(angle)
+						local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
 
 						local newX, newY = deltaX - sinn * radius, deltaY + coss * radius
 
@@ -144,7 +258,7 @@ do
 					for i = 1, vertsPerEdge - 1 do
 						local angle = halfPi * (i / vertsPerEdge)
 
-						local sinn, coss = sin(angle), cos(angle)
+						local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
 
 						local newX, newY = deltaX - coss * radius, deltaY - sinn * radius
 
@@ -167,6 +281,7 @@ do
 	local meshAdvanceVertex = mesh.AdvanceVertex
 	local meshTexCoord = mesh.TexCoord
 
+---@diagnostic disable-next-line: deprecated
 	local bilinearInterpolation = paint.bilinearInterpolation
 
 	---Internal function used in pair with mesh.Begin(PRIMITIVE_POLYGON). Used for single batched rounded boxes.
@@ -211,28 +326,29 @@ do
 	---@param v1 number
 	---@param u2 number
 	---@param v2 number
+	---@param curviness number
 	---@return string id
-	local function getId(radius, w, h, corners, colors, u1, v1, u2, v2)
+	local function getId(radius, w, h, corners, colors, u1, v1, u2, v2, curviness)
 		local color1, color2, color3, color4, color5 = colors[1], colors[2], colors[3], colors[4], colors[5]
 
 		if color5 == nil then
-			return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f',
+			return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f;%f',
 				radius, w, h, corners,
 				color1.r, color1.g, color1.b, color1.a,
 				color2.r, color2.g, color2.b, color2.a,
 				color3.r, color3.g, color3.b, color3.a,
 				color4.r, color4.g, color4.b, color4.a,
-				u1, v1, u2, v2
+				u1, v1, u2, v2, curviness
 			)
 		else
-			return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f',
+			return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f;%f',
 				radius, w, h, corners,
 				color1.r, color1.g, color1.b, color1.a,
 				color2.r, color2.g, color2.b, color2.a,
 				color3.r, color3.g, color3.b, color3.a,
 				color4.r, color4.g, color4.b, color4.a,
 				color5.r, color5.g, color5.b, color5.a,
-				u1, v1, u2, v2
+				u1, v1, u2, v2, curviness
 			)
 		end
 
@@ -257,14 +373,17 @@ do
 	---@param v1 number
 	---@param u2 number
 	---@param v2 number
-	function roundedBoxes.roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2)
-		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors, u1, v1, u2, v2)
+	---@param curviness number?
+	---@deprecated Internal variable. Not meant to use outside
+	function roundedBoxes.roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2, curviness)
+		curviness = curviness or 2
+		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors, u1, v1, u2, v2, curviness)
 
 		local meshObj = cachedRoundedBoxMeshes[id]
 
 		if meshObj == nil then
 			meshObj = meshConstructor()
-			generateSingleMesh(createVertex, meshObj, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, u1, v1, u2, v2)
+			generateSingleMesh(createVertex, meshObj, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, u1, v1, u2, v2, curviness)
 
 			cachedRoundedBoxMeshes[id] = meshObj
 		end
@@ -296,7 +415,7 @@ do
 	local incrementZ = paint.incrementZ
 
 	local color = Color
-	local bilinearInterpolation = paint.bilinearInterpolation 
+	local bilinearInterpolation = paint.bilinearInterpolation
 
 	---@type createVertexFunc
 	local function createVertex(x, y, u, v, colors)
@@ -361,10 +480,12 @@ do
 	---@param rightTop? boolean
 	---@param rightBottom? boolean
 	---@param leftBottom? boolean
-	function roundedBoxes.roundedBoxExBatched(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom)
+	---@param curviness number?
+	---@deprecated Internal variable. Not meant to use outside
+	function roundedBoxes.roundedBoxExBatched(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, curviness)
 		prev1 = nil
 		prev2 = nil
-		generateSingleMesh(createVertex, nil, radius, x, y, x + w, y + h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1)
+		generateSingleMesh(createVertex, nil, radius, x, y, x + w, y + h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1, curviness)
 	end
 end
 
@@ -377,24 +498,27 @@ do
 
 	local batch = paint.batch
 
-	--- Draws rounded box (extended)
-	---@param radius number
-	---@param x number
-	---@param y number
-	---@param w number
-	---@param h number
-	---@param colors gradients
+	-- Identical to roundedBox other than that it allows you to specify specific corners to be rounded.
+	-- For brevity, arguments duplicated from roundedBox are not repeated here.
+	---@param radius number # radius of the rounded corners
+	---@param x number #start X position of rounded box (upper left corner)
+	---@param y number #start X position of rounded box (upper left corner)
+	---@param w number #width of rounded box
+	---@param h number #height of rounded box
+	---@param colors gradients #colors of rounded box. Either a table of Colors, or a single Color.
+	---@param material? IMaterial #Either a Material, or nil.  Default: vgui/white
+	---@param u1 number #The texture U coordinate of the Top-Left corner of the rounded box.
+	---@param v1 number #The texture V coordinate of the Top-Left corner of the rounded box.
+	---@param u2 number #The texture U coordinate of the Bottom-Right corner of the rounded box.
+	---@param v2 number #The texture V coordinate of the Bottom-Right corner of the rounded box.
+	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
+	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors : gradients, material? : IMaterial)
 	---@param leftTop? boolean
 	---@param rightTop? boolean
 	---@param rightBottom? boolean
 	---@param leftBottom? boolean
-	---@param material? IMaterial
-	---@param u1 number
-	---@param v1 number
-	---@param u2 number
-	---@param v2 number
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors : gradients, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, material? : IMaterial)
-	function roundedBoxes.roundedBoxEx(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2)
+	function roundedBoxes.roundedBoxEx(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2, curviness)
 		if colors[4] == nil then
 			colors[1] = colors
 			colors[2] = colors
@@ -406,6 +530,8 @@ do
 			u1, v1, u2, v2 = 0, 0, 1, 1
 		end
 
+		curviness = curviness or 2
+
 		if radius == 0 then
 			leftTop, rightTop, rightBottom, leftBottom = false, false, false, false
 		else
@@ -415,29 +541,30 @@ do
 		material = material or defaultMat
 
 		if batch.batching then
-			roundedBoxExBatched(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom)
+			roundedBoxExBatched(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, curviness)
 		else
-			roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2)
+			roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2, curviness)
 		end
 	end
 
 	local roundedBoxEx = roundedBoxes.roundedBoxEx
 
-	--- Draws rounded box with all rounded corners
-	---@param radius number
-	---@param x number
-	---@param y number
-	---@param w number
-	---@param h number
-	---@param colors gradients
-	---@param material? IMaterial
-	---@param u1 number
-	---@param v1 number
-	---@param u2 number
-	---@param v2 number
+	---Draws a rounded box with the specified parameters.
+	---@param radius number # radius of the rounded corners
+	---@param x number #start X position of rounded box (upper left corner)
+	---@param y number #start X position of rounded box (upper left corner)
+	---@param w number #width of rounded box
+	---@param h number #height of rounded box
+	---@param colors gradients #colors of rounded box. Either a table of Colors, or a single Color.
+	---@param material? IMaterial #Either a Material, or nil.  Default: vgui/white
+	---@param u1 number #The texture U coordinate of the Top-Left corner of the rounded box.
+	---@param v1 number #The texture V coordinate of the Top-Left corner of the rounded box.
+	---@param u2 number #The texture U coordinate of the Bottom-Right corner of the rounded box.
+	---@param v2 number #The texture V coordinate of the Bottom-Right corner of the rounded box.
+	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors : gradients, material? : IMaterial)
-	function roundedBoxes.roundedBox(radius, x, y, w, h, colors, material, u1, v1, u2, v2)
-		roundedBoxEx(radius, x, y, w, h, colors, true, true, true, true, material, u1, v1, u2 ,v2)
+	function roundedBoxes.roundedBox(radius, x, y, w, h, colors, material, u1, v1, u2, v2, curviness)
+		roundedBoxEx(radius, x, y, w, h, colors, true, true, true, true, material, u1, v1, u2, v2, curviness)
 	end
 end
 
@@ -455,10 +582,24 @@ do
 
 	local emptyTab = {} -- We do not use colors, so fuck them and place empty table here
 
-	function roundedBoxes.generateDrawPoly(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, u1, v1, u2, v2)
+	---@param radius number
+	---@param x number
+	---@param y number
+	---@param w number
+	---@param h number
+	---@param leftTop boolean?
+	---@param rightTop  boolean?
+	---@param rightBottom boolean?
+	---@param leftBottom boolean?
+	---@param u1 number
+	---@param v1 number
+	---@param u2 number
+	---@param v2 number
+	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
+	function roundedBoxes.generateDrawPoly(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, u1, v1, u2, v2, curviness)
 		createdTable = {}
 		len = 0
-		generateSingleMesh(createVertex, nil, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, emptyTab, u1, v1, u2, v2)
+		generateSingleMesh(createVertex, nil, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, emptyTab, u1, v1, u2, v2, curviness)
 
 		local tab = createdTable
 

@@ -1,3 +1,21 @@
+---@diagnostic disable: deprecated
+---The paint library has a built-in blur effect!
+---
+---This works by taking a copy of the screen, lowering its resolution, blurring it, then returning that as a material.
+---
+---You can then use that material with any of the paint functions to draw a blurred shape.
+---
+---It's a simple, cheap, and cool effect!
+---
+---Simple example:
+---```lua
+---local x, y = panel:LocalToScreen( 0, 0 ) -- getting absolute position
+---local scrW, scrH = ScrW(), ScrH() -- it will be used to get UV coordinates
+---local mat = paint.blur.getBlurMaterial()
+---paint.rects.drawRect( 0, 0, 100, 64, color_white, mat, x / scrW, y / scrH, (x + 100) / scrW, (y + 64) / scrH )
+---paint.roundedBoxes.roundedBox( 32, 120, 0, 120, 64, color_white, mat, (x + 120) / scrW, y / scrH, (x + 240) / scrW, (y + 64) / scrH )
+---``` 
+
 ---@class blur
 local blur = {}
 local paint = paint
@@ -15,18 +33,21 @@ local BLUR_TIME = 1 / 30
 
 local BLUR_EXPENSIVE = false
 
-local RT_FLAGS = bit.band(2, 256, 32768)
+local RT_FLAGS = 2 + 256 + 32768
 local TEXTURE_PREFIX = 'paint_library_rt_'
 local MATERIAL_PREFIX = 'paint_library_material_'
 
+---@type {[string] : ITexture}
 local textures = {
 	default = GetRenderTargetEx(TEXTURE_PREFIX .. 'default', RT_SIZE, RT_SIZE, 1, 2, RT_FLAGS, 0, 2)
 }
 
+---@type {[string] : number}
 local textureTimes = {
 	default = 0
 }
 
+---@type {[string] : IMaterial}
 local textureMaterials = {
 	default = CreateMaterial(MATERIAL_PREFIX .. 'default', 'UnlitGeneric', {
 		['$basetexture'] = TEXTURE_PREFIX .. 'default',
@@ -48,7 +69,7 @@ do
 	local overrideColorWriteEnable = render.OverrideColorWriteEnable
 	local overrideAlphaWriteEnable = render.OverrideAlphaWriteEnable
 	local drawScreenQuad = render.DrawScreenQuad
-	local updateScreenEffectTexture = render.UpdateScreenEffectTexture 
+	local updateScreenEffectTexture = render.UpdateScreenEffectTexture
 	local setMaterial = render.SetMaterial
 
 	local blurMaterial = Material('pp/blurscreen')
@@ -61,12 +82,17 @@ do
 	local whiteMaterial = Material('vgui/white')
 
 	local blurRTExpensive = render.BlurRenderTarget
-	local function blurRTCheap(rt, blur, blur, passes)
+
+	---@param rt ITexture
+	---@param _ number
+	---@param blurStrength number
+	---@param passes number
+	local function blurRTCheap(rt, _, blurStrength, passes)
 		setMaterial(blurMaterial)
 		setTexture(blurMaterial, '$basetexture', rt)
 
 		for i = 1, passes do
- 			setFloat(blurMaterial, '$blur', (i / passes) * blur)
+ 			setFloat(blurMaterial, '$blur', (i / passes) * blurStrength)
  			recompute(blurMaterial)
 
  			-- if you don't update screenEffect texture
@@ -80,16 +106,21 @@ do
  			--That's tottally retarded.
 			updateScreenEffectTexture()
 			drawScreenQuad()
-		end 
+		end
 
 		--Reseting it's basetexture to default one
 		setTexture(blurMaterial, '$basetexture', screenEffectTexture)
 	end
 
-	function blur.generateBlur(id, blur, passes, expensive) -- used right before drawing 2D shit
+
+	---Blurs texture with specified parameters
+	---@param blurStrength number? How much blur strength the result texture will have. Overrides BLUR
+	---@param passes number? How much bluring passes texture will have. More passes will result in better bluring quality, but worse performace. Affects performance a lot.
+	---@param expensive boolean? If set to true, it will try to blur texture with defualt Source Engine shaders called BlurX, BlurY. They are expensive. If unset or false, it will try to blur stuff with gmodscreenspace shader.
+	function blur.generateBlur(id, blurStrength, passes, expensive) -- used right before drawing 2D shit
 		local texToBlur = textures[id or 'default']
 
-		blur = blur or BLUR
+		blurStrength = blurStrength or BLUR
 		passes = passes or BLUR_PASSES
 		expensive = expensive or BLUR_EXPENSIVE
 
@@ -97,8 +128,9 @@ do
 
  		pushRenderTarget(texToBlur)
  			start2D()
+ 				---@type fun(texture: ITexture, blurX: number, blurY: number, passes: number)
  				local blurRT = expensive and blurRTExpensive or blurRTCheap
- 				blurRT(texToBlur, blur, blur, passes)
+ 				blurRT(texToBlur, blurStrength, blurStrength, passes)
 
 	 			overrideAlphaWriteEnable(true, true)
 	 			overrideColorWriteEnable(true, false)
@@ -108,8 +140,6 @@ do
 
 	 			overrideAlphaWriteEnable(false, true)
 	 			overrideColorWriteEnable(false, true)
-
-
 	  		end2D()
 		popRenderTarget()
 
@@ -120,14 +150,18 @@ do
 end
 
 do
-	---@type number?
-	local needsBlurWhen = 0
-
 	local clock = os.clock
 	local generateBlur = blur.generateBlur
 
-	---utility function to request blur in next blur frame (or current)
-	function blur.requestBlur(id, time, blur, passes, expensive)
+	---Tries to blur texture with specified id and parameters according to it's last time being blurred
+	---@param id string Identifier of blur texture. If set to nil or 'default', then default blur texture will be asked to be blurred with legacy logic
+	---If it is set, and not set to 'default', then it tries to blur texture if needs to and enables other arguments as well. Use with caution!
+	---@param time number? How much time needs to be passed for next texture's bluring? You usually want it to set to ``1 / blurFPS``. Overrides BLUR_FPS. Affects performance a lot.
+	---@param blurStrength number? How much blur strength the result texture will have. Overrides BLUR
+	---@param passes number? How much bluring passes texture will have. More passes will result in better bluring quality, but worse performace. Affects performance a lot.
+	---@param expensive boolean? If set to true, it will try to blur texture with defualt Source Engine shaders called BlurX, BlurY. They are expensive. If unset or false, it will try to blur stuff with gmodscreenspace shader.
+	---@overload fun(id : 'default'?): IMaterial
+	function blur.requestBlur(id, time, blurStrength, passes, expensive)
 		id = id or 'default'
 		time = time or BLUR_TIME
 
@@ -137,7 +171,7 @@ do
 		end
 
 		if id ~= 'default' and textureTimes[id] < clock() then
-			generateBlur(id, blur, passes, expensive)
+			generateBlur(id, blurStrength, passes, expensive)
 
 			if time > 0 then
 				textureTimes[id] = nil
@@ -168,37 +202,53 @@ do
 	local popRenderTarget = render.PopRenderTarget
 	local clear = render.Clear
 
-	---Requests next blur update, as well as returns blurred texture
+	---Returns a Texture with the blurred image from the screen.
+	---@param id string Identifier of blur texture. If set to nil or 'default', then default blur texture will be returned with legacy logic
+	---If it is set, and not set to 'default', then it tries to blur texture if needs to and enables other arguments as well. Use with caution!
+	---@param time number? How much time needs to be passed for next texture's bluring? You usually want it to set to ``1 / blurFPS``. Overrides BLUR_FPS. Affects performance a lot.
+	---@param blurStrength number? How much blur strength the result texture will have. Overrides BLUR
+	---@param passes number? How much bluring passes texture will have. More passes will result in better bluring quality, but worse performace. Affects performance a lot.
+	---@param expensive boolean? If set to true, it will try to blur texture with defualt Source Engine shaders called BlurX, BlurY. They are expensive. If unset or false, it will try to blur stuff with gmodscreenspace shader.
+	---@nodiscard
+	---@overload fun(id : 'default'?): ITexture
 	---@return ITexture
-	function blur.getBlurTexture(id, time, blur, passes, expensive)
+	function blur.getBlurTexture(id, time, blurStrength, passes, expensive)
 		id = id or 'default'
-		
+
 		if textures[id] == nil then
 			local tex = getRenderTargetEx(TEXTURE_PREFIX .. id, RT_SIZE, RT_SIZE, 1, 2, RT_FLAGS, 0, 2)
 			textures[id] = tex
 			textureTimes[id] = 0
 
-			pushRenderTarget(tex)	
+			pushRenderTarget(tex)
 				clear(0, 0, 0, 255)
 			popRenderTarget()
 		end
 
-		requestBlur(id, time, blur, passes, expensive)
+		requestBlur(id, time, blurStrength, passes, expensive)
 
 		return textures[id]
 	end
 
 	local getBlurTexture = blur.getBlurTexture
 
-	---Requests next blur update, as well as returns blur material.
-	---@return IMaterial
-	function blur.getBlurMaterial(id, time, blur, passes, expensive)
+	---Returns a Material with the blurred image from the screen.
+	---@param id string Identifier of blur material. If set to nil or 'default', then default blur material will be returned with legacy logic
+	---If it is set, and not set to 'default', then it tries to blur material if needs to and enables other arguments as well. Use with caution!
+	---@param time number? How much time needs to be passed for next material's bluring? You usually want it to set to ``1 / blurFPS``. Overrides BLUR_FPS. Affects performance a lot.
+	---@param blurStrength number? How much blur strength the result material will have. Overrides BLUR
+	---@param passes number? How much bluring passes material will have. More passes will result in better bluring quality, but worse performace. Affects performance a lot.
+	---@param expensive boolean? If set to true, it will try to blur material with defualt Source Engine shaders called BlurX, BlurY. They are expensive. If unset or false, it will try to blur stuff with gmodscreenspace shader.
+	---@nodiscard
+	---@overload fun(id : 'default'?): IMaterial
+	---@return IMaterial # Blurred screen image
+	function blur.getBlurMaterial(id, time, blurStrength, passes, expensive)
 		id = id or 'default'
 		local mat = textureMaterials[id]
 
 		if mat == nil then
 			mat = createMaterial(MATERIAL_PREFIX .. id, 'UnlitGeneric', {
-				['$basetexture'] = getBlurTexture(id, time, blur, passes, expensive):GetName(),
+				['$basetexture'] = getBlurTexture(id, time, blurStrength, passes, expensive):GetName(),
 				['$vertexalpha'] = 1,
 				['$vertexcolor'] = 1,
 				['$model'] = 1,
@@ -209,7 +259,7 @@ do
 			return mat-- requestBlur is arleady done.
 		end
 
-		requestBlur(id, time, blur, passes, expensive)
+		requestBlur(id, time, blurStrength, passes, expensive)
 
 		return mat
 	end

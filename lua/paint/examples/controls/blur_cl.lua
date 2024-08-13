@@ -12,15 +12,15 @@ This works by taking a copy of the screen, lowering its resolution, blurring it,
 You can then use that material with any of the paint functions to draw a blurred shape.
 It's a simple, cheap, and cool effect!
 
-The blur effect is configurable clientside with the following ConVars:
-paint_blur - integer - Controls blur strength
-paint_blur_passes - integer - Controls blur passes
-paint_blur_fps - integer - Controls how many fps will bloored image have]]
+The blur effect is configurable clientside with the following local constant values:
+BLUR - integer - Controls blur strength
+BLUR_PASSES - integer - Controls blur passes
+BLUR_FPS - integer - Controls how many fps will bloored image have]]
 	)
 
 	paint.examples.header( panel, "Functions" )
 
-	paint.examples.boldText( panel, "paint.blur.getBlurMaterial()" )
+	paint.examples.boldText( panel, "paint.blur.getBlurMaterial(id, fps, blur, passes, expensive)" )
 	paint.examples.text( panel,
 [[Returns a Material with the blurred image from the screen.]]
 	)
@@ -43,6 +43,7 @@ paint_blur_fps - integer - Controls how many fps will bloored image have]]
 		surface.SetDrawColor( 50, 50, 50, 200 )
 		surface.DrawRect( 0, 0, width, height )
 
+---@diagnostic disable-next-line: redefined-local
 		local panel = self
 		paint.startPanel(self)
 			local x, y = panel:LocalToScreen( 0, 0 ) -- getting absolute position

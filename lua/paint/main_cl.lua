@@ -1,38 +1,47 @@
----@class paint
----@field lines lines
----@field roundedBoxes roundedBoxes
----@field rects rects
----@field outlines outlines
----@field batch batch
----@field examples paint.examples
----@field blur blur
----@field circles circles
+---@diagnostic disable: deprecated
+---Paint library for GMod!
+---
+---Purpose: drop in replacement to all surface/draw functions. Now there's no need to use them
+---
+---	Features:
+---
+---		1) Enchanced lines, with support of linear gradients.
+---
+---		2) Enchanced rounded boxes. They support stencils, materials and outlines.
+---
+---		3) Circles. Super fast.
+---
+--- 	4) Batching. Everything here can be batched to save draw calls. Saves a lot of performance.
+---
+--- 	5) This library is SUPER fast. Some functions here are faster than default ones.
+---
+--- 	6) Rectangle support, with support of per-corner gradienting
+---
+--- 	7) Coordinates do not end up being rounded. Good for markers and other stuff.
+---
+--- Coded by [@jaffies](https://github.com/jaffies), aka [@mikhail_svetov](https://github.com/jaffies) (formely @michael_svetov) in discord.
+--- Thanks to [A1steaksa](https://github.com/Jaffies/paint/pull/1), PhoenixF, [Riddle](https://github.com/Jaffies/paint/pull/2) and other people in gmod discord for various help
+---
+--- Please, keep in mind that this library is still in development. 
+--- You can help the project by contributing to it at [github repository](https://github.com/jaffies/paint)
+---@class paint paint d # paint library. Provides ability to draw shapes with mesh power
+---@field lines lines # lines module of paint library. Can make batched and gradient lines out of the box
+---@field roundedBoxes roundedBoxes # roundedBoxes provide better rounded boxes drawing because it makes them via meshes/polygons you name it.
+---@field rects rects # Rect module, gives rects with ability to batch and gradient per corner support
+---@field outlines outlines # outline module, gives you ability to create hollow outlines with  
+---@field batch batch Unfinished module of batching. Provides a way to create IMeshes 
+---@field examples paint.examples example library made for help people understand how paint library actually works. Can be opened via ``lua_run examples.showHelp()``
+---@field blur blur blur library, provides a nice way to retrieve a cheap blur textures/materials
+---@field circles circles Circles! killer.
 local paint = {}
 
 ---@alias gradients Color | Color[]
---[[
-	Paint library.
-
-	Purpose: drop in replacement to all surface/draw functions. Now there's no need to use them
-
-	Features:
-		1) Enchanced lines, with support of linear gradients.
-		2) Enchanced rounded boxes. They support stencils, materials and outlines.
-		3) Circles. Super fast.
-		4) Batching. Everything here can be batched to save draw calls. Saves a lot of performance.
-		5) This library is SUPER fast. Some functions here are faster than default ones.
-		6) Rectangle support, with support of per-corner gradienting
-		7) Coordinates do not end up being rounded. Good for markers and other stuff.
-
-
-	Coded by @jaffies, aka @mikhail_svetov (formely @michael_svetov) in discord.
-	Thanks to A1steaksa, PhoenixF and other people in gmod discord for various help
-
---]]
 
 do
 	-- this fixes rendering issues with batching
 
+	---Internal variable made for batching to store Z pos meshes won't overlap each other
+	---@deprecated Internal variable. Not meant to use outside
 	paint.Z = 0
 
 	---resets paint.Z to 0
@@ -52,7 +61,7 @@ do
 		return paint.getZ()
 	end
 
-	--- Calculates Z position, depending of paint.Z value
+	--- Calculates Z position, depending of paint.Z value. Made for batching
 	---@return number z # calculated Z position. Is not equal to paint.Z 
 	function paint.getZ()
 		return -1 + paint.Z / 8192
@@ -69,6 +78,7 @@ do -- Additional stuff to scissor rect.
     local min = math.min
 
     --- Pushes new scissor rect boundaries to stack. Simmilar to Push ModelMatrix/RenderTarget/Filter(Mag/Min)
+    ---@see render.PushRenderTarget # A simmilar approach to render targets.
     ---@param x number # start x position
     ---@param y number # start y position
     ---@param endX number # end x position. Must be bigger than x
@@ -90,6 +100,7 @@ do -- Additional stuff to scissor rect.
     end
 
     --- Pops last scissor rect's boundaries from the stack. Simmilar to Pop ModelMatrix/RenderTarget/Filter(Mag/Min)
+    ---@see paint.pushScissorRect
     function paint.popScissorRect()
         tab[len] = nil
         len = max(0, len - 1)
@@ -123,10 +134,16 @@ do
 	local pushScissorRect = paint.pushScissorRect
 	local popScissorRect = paint.popScissorRect
 
-	--- Helper function, which sets drawing coordinates to panel's relative coordinates, and boundaries if enabled
-	---@param panel Panel
-	---@param pos? boolean # use panel's relative coordinates in next drawing operations? Default - yes
-	---@param boundaries? boolean # use panel's boundaries with scissor rect? Default - no
+	---
+	---Unfortunately, the paint library cannot integrate seamlessly with VGUI and Derma in the way that the surface and draw libraries do.
+	---This is because Meshes, which are used by the paint library, can only use absolute screen coordinates whereas the surface and draw libraries are automatically provided with panel-relative coordinates by the VGUI system.
+	---
+	---In addition, meshes cannot be clipped with the default VGUI clipping system and will behave as though it is disabled.
+	---
+	---To work around these limitations, you can use this function.
+	---@param panel Panel # The panel to draw on.
+	---@param pos? boolean # Set to true to autoamtically adjust all future paint operations to be relative to the panel.  Default: true
+	---@param boundaries? boolean # Set to true to enable ScissorRect to the size of the panel. Default: false
 	function paint.startPanel(panel, pos, boundaries, multiply)
 		local x, y = localToScreen(panel, 0, 0)
 
@@ -145,9 +162,9 @@ do
 		end
 	end
 
-	--- Helper function, which must be used after paint.startPanel
-	---@param pos? boolean # remove panel relatvie coordinates? Default - yes
-	---@param boundaries? boolean # remove panel boundaries by scissorRect? Default - no
+	---@see paint.startPanel # Note: You need to have same arguments for position and boundaries between start and end panel functions.
+	---@param pos? boolean # Set to true to autoamtically adjust all future paint operations to be relative to the panel.  Default: true
+	---@param boundaries? boolean # Set to true to enable ScissorRect to the size of the panel. Default: false
 	function paint.endPanel(pos, boundaries)
 		if pos or pos == nil then
 			popModelMatrix()
@@ -167,6 +184,7 @@ do
 	end
 
 	--- Simple helper function which makes bilinear interpolation
+	---@deprecated Internal variable. Not meant to use outside
 	---@param x number # x is fraction between 0 and 1. 0 - left side, 1 - right side
 	---@param y number # y is fraction between 0 and 1. 0 - top side, 1 - bottom side
 	---@param leftTop integer
@@ -182,5 +200,4 @@ do
 	end
 end
 
----paint library
 _G.paint = paint

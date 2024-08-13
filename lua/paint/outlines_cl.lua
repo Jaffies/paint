@@ -1,5 +1,35 @@
+---@diagnostic disable: deprecated
 local paint = paint--[[@as paint]]
 
+--```
+--What makes paint outlines better than stencils:
+--1) Support for materials!
+--2) Support for gradients within the outline!
+--3) Curviness!
+--```
+--# Simple example:
+---
+--Drawing outlines with different thicknesses on each side.
+--```lua
+--paint.outlines.drawOutline( 32, 16, 10, 64, 64, { COLOR_WHITE, COLOR_BLACK }, nil, 8 )
+--paint.outlines.drawOutline( 32, 102, 10, 64, 64, { COLOR_WHITE, color_transparent }, nil, 8 )
+--paint.outlines.drawOutline( 32, 192, 10, 64, 64, { COLOR_BLACK, ColorAlpha( COLOR_BLACK, 0 ) }, nil, 8 )
+---```
+---# Asymmetrical Example
+---
+---Drawing outlines with a different inner and outer color.
+---```lua
+-- paint.outlines.drawOutline( 32, 16, 10, 64, 64, { COLOR_WHITE, COLOR_BLACK }, nil, 8 )
+-- paint.outlines.drawOutline( 32, 102, 10, 64, 64, { COLOR_WHITE, color_transparent }, nil, 8 )
+-- paint.outlines.drawOutline( 32, 192, 10, 64, 64, { COLOR_BLACK, ColorAlpha( COLOR_BLACK, 0 ) }, nil, 8 )
+---```
+---# Draw Outline Animated Gradient Example
+---
+---Drawing an animated, colorful outline with a gradient.
+---```lua
+-- local color1, color2 = HSVToColor( RealTime() * 120, 1, 1 ), HSVToColor( RealTime() * 120 + 30, 1, 1 )
+-- paint.outlines.drawOutline( 32, 32, 18, 64, 64, { color1, color2 }, nil, 16 )
+---```
 ---@class outlines
 local outlines = {}
 
@@ -23,7 +53,7 @@ do
 	---@type number
 	local outlineBottom = 0
 
-	local atan2, max = math.atan2, math.max
+	local atan2 = math.atan2
 
 	---@type createVertexFunc
 	local function createVertex(x, y, u, v, colors)
@@ -95,7 +125,9 @@ do
 	---@param t number
 	---@param r number
 	---@param b number
-	function outlines.generateOutlineSingle(mesh, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b)
+	---@param curviness number?
+	---@deprecated Internal variable, not meant to be used outside.
+	function outlines.generateOutlineSingle(mesh, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b, curviness)
 		local count = 6
 		local vertsPerEdge = clamp(radius / 2, 3, 24)
 
@@ -117,11 +149,13 @@ do
 
 		count = count * 2
 
+		curviness = curviness or 2
+
 		isFirst = true
 		prevU = nil
 
 		meshBegin(mesh, PRIMITIVE_TRIANGLE_STRIP, count)
-			generateSingleMesh(createVertex, nil, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1)
+			generateSingleMesh(createVertex, nil, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1, curviness)
 		meshEnd()
 	end
 end
@@ -142,13 +176,14 @@ do
 	---@param t number
 	---@param r number
 	---@param b number
+	---@param curviness number?
 	---@return string id
-	local function getId(radius, w, h, corners, color1, color2, l, t, r, b)
-		return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%u;%u;%u;%u',
+	local function getId(radius, w, h, corners, color1, color2, l, t, r, b, curviness)
+		return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%u;%u;%u;%u;%f',
 			radius, w, h, corners,
 			color1.r, color1.g, color1.b, color1.a,
 			color2.r, color2.g, color2.b, color2.a,
-			l, t, r, b
+			l, t, r, b, curviness or 2
 		)
 	end
 
@@ -183,16 +218,19 @@ do
 	---@param t number
 	---@param r number
 	---@param b number
+	---@param curviness number?
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineThickness: number)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineWidth: number, outlineHeight: number)
-	function outlines.drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b)
-		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors[1], colors[2], l, t, r, b)
+	function outlines.drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness)
+		curviness = curviness or 2
+
+		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors[1], colors[2], l, t, r, b, curviness)
 
 		local meshObj = cachedOutlinedMeshes[id]
 
 		if meshObj == nil then
 			meshObj = meshConstructor()
-			generateOutlineSingle(meshObj, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b)
+			generateOutlineSingle(meshObj, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b, curviness)
 
 			cachedOutlinedMeshes[id] = meshObj
 		end
@@ -227,8 +265,6 @@ do
 	local z
 
 	local batch = paint.batch
-
-	local max = math.max
 
 	---@param x number
 	---@param y number
@@ -325,11 +361,13 @@ do
 	---@param t number
 	---@param r number
 	---@param b number
-	function outlines.drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, _, l, t, r, b)
+	---@param curviness number?
+	function outlines.drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, _, l, t, r, b, curviness)
 		outlineL, outlineT, outlineR, outlineB = l, t, r, b
 		first = true
+		curviness = curviness or 2
 		z = incrementZ()
-		generateSingleMesh(createVertex, nil, radius, x, y, x + w, y + h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1)
+		generateSingleMesh(createVertex, nil, radius, x, y, x + w, y + h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1, curviness)
 	end
 end
 
@@ -340,25 +378,26 @@ do
 
 	local min = math.min
 
-	---Draws outline (extended)
+	---Identical to drawOutline other than that it allows you to specify specific corners to be rounded.
 	---@param radius number
-	---@param x number
-	---@param y number
-	---@param w number
-	---@param h number
+	---@param x number start X position of outline
+	---@param y number start Y position of outline
+	---@param w number width of outline
+	---@param h number height of outline
+	---@param colors gradients Colors of outline. Either a color, or table with 2 colors inside.
+	---@param material? IMaterial # Default material is vgui/white
 	---@param leftTop? boolean
 	---@param rightTop? boolean
 	---@param rightBottom? boolean
 	---@param leftBottom? boolean
-	---@param colors gradients
-	---@param material? IMaterial # Default material is vgui/white
-	---@param l number outline left size
-	---@param t number outline top size 
-	---@param r number outline right size
-	---@param b number outline bottom size
+	---@param l number Left outline width
+	---@param t number Top outline width 
+	---@param r number Right outline width
+	---@param b number Botton outline width
+	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineThickness: number)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineWidth: number, outlineHeight: number)
-	function outlines.drawOutlineEx(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b)
+	function outlines.drawOutlineEx(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness)
 		if colors[1] == nil then
 			colors[1] = colors
 			colors[2] = colors
@@ -374,33 +413,35 @@ do
 			r, b = l, t
 		end
 
+		curviness = curviness or 2
 		radius = min(radius, w / 2, h / 2)
 
 		if batch.batching then
-			drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b)
+			drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness)
 		else
-			drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b)
+			drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness)
 		end
 	end
 
 	local drawOutlineEx = outlines.drawOutlineEx
 
-	---Draws outline
-	---@param radius number
-	---@param x number
-	---@param y number
-	---@param w number
-	---@param h number
-	---@param colors gradients
+	---Draws an outline with the specified parameters. Bases on rounded box, but makes outline of them.
+	---@param radius number radius of roundedBox the outline will 'outline'
+	---@param x number start X position of outline
+	---@param y number start Y position of outline
+	---@param w number width of outline
+	---@param h number height of outline
+	---@param colors gradients Colors of outline. Either a color, or table with 2 colors inside.
 	---@param material? IMaterial # Default material is vgui/white
-	---@param l number outline left size
-	---@param t number outline top size 
-	---@param r number outline right size
-	---@param b number outline bottom size
+	---@param l number Left outline width
+	---@param t number Top outline width 
+	---@param r number Right outline width
+	---@param b number Botton outline width
+	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineThickness: number)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineWidth: number, outlineHeight: number)
-	function outlines.drawOutline(radius, x, y, w, h, colors, material, l, t, r, b)
-		drawOutlineEx(radius, x, y, w, h, true, true, true, true, colors, material, l, t, r, b)
+	function outlines.drawOutline(radius, x, y, w, h, colors, material, l, t, r, b, curviness)
+		drawOutlineEx(radius, x, y, w, h, true, true, true, true, colors, material, l, t, r, b, curviness)
 	end
 end
 _G.paint.outlines = outlines

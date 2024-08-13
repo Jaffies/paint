@@ -1,6 +1,29 @@
+---@diagnostic disable: deprecated
+---# paint.circles!
+---### Forget about Circles! from sneakysquid
+---he's a f***** btw ;)
+---
+---This library allows you to create and draw circles and ellipses
+---```
+---But with a twist:
+---1) They have gradients of course
+---2) They can be sliced
+---3) They support stencils 
+---4) They can have various curviness (squircles/SwiftUI/IOS rounded square )
 ---@class circles
 local circles = {}
 local paint = paint
+
+---@param num number
+---@param power number
+---@return number
+local function fpow( num, power )
+	if num > 0 then
+		return num ^ power
+	else
+		return -(-num) ^ power
+	end
+end
 
 do
 	local meshConstructor = Mesh
@@ -18,14 +41,17 @@ do
 
 	local sin, cos = math.sin, math.cos
 
+
 	---Generates single circle mesh, unbatched
 	---@param vertexCount integer
 	---@param startAngle number
 	---@param endAngle number
 	---@param colors {[1]: Color, [2]: Color}
+	---@param curviness number
 	---@param rotation number
+	---@deprecated Internal variable, not meant to be used outside.
 	---@return IMesh
-	function circles.generateSingleMesh(vertexCount, startAngle, endAngle, colors, rotation)
+	function circles.generateSingleMesh(vertexCount, startAngle, endAngle, colors, rotation, curviness)
 		local meshObj = meshConstructor()
 
 		local r, g, b, a = colors[2].r, colors[2].g, colors[2].b, colors[2].a
@@ -40,9 +66,9 @@ do
 			for i = 0, vertexCount do
 				local angle = startAngle + deltaAngle * i / vertexCount
 
-				meshPosition(cos(angle), sin(angle), 0)
+				meshPosition(fpow(cos(angle), curviness), fpow(sin(angle), curviness), 0)
 				meshColor(r, g, b, a)
-				meshTexCoord(0, sin(angle + rotation) / 2 + 0.5, cos(angle + rotation) / 2 + 0.5)
+				meshTexCoord(0, fpow(sin(angle + rotation), curviness) / 2 + 0.5, fpow(cos(angle + rotation), curviness) / 2 + 0.5)
 				meshAdvanceVertex()
 			end
 		meshEnd()
@@ -64,7 +90,9 @@ do
 	---@param startAngle number
 	---@param endAngle number
 	---@param colors {[1]: Color, [2]: Color}
-	function circles.generateMeshBatched(x, y, w, h, vertexCount, startAngle, endAngle, colors)
+	---@param curviness number
+	---@deprecated Internal variable, not meant to be used outside.
+	function circles.generateMeshBatched(x, y, w, h, vertexCount, startAngle, endAngle, colors, curviness)
 		local startColor, endColor = colors[1], colors[2]
 
 		local batchTable = batch.batchTable
@@ -86,16 +114,16 @@ do
 			do -- 2nd vertex (current point)
 				local angle = startAngle + deltaAngle * i / vertexCount
 
-				batchTable[len + 5 + indexI] = x + cos(angle) * w -- second vertex
-				batchTable[len + 6 + indexI] = y + sin(angle) * h
+				batchTable[len + 5 + indexI] = x + fpow(cos(angle), curviness) * w -- second vertex
+				batchTable[len + 6 + indexI] = y + fpow(sin(angle),curviness) * h
 				batchTable[len + 7 + indexI] = endColor
 			end
 
 			do -- 3rd vertex (next point)
 				local angle = startAngle + deltaAngle * (i + 1) / vertexCount
 
-				batchTable[len + 8 + indexI] = x + cos(angle) * w -- second vertex
-				batchTable[len + 9 + indexI] = y + sin(angle) * h
+				batchTable[len + 8 + indexI] = x + fpow(cos(angle), curviness) * w -- second vertex
+				batchTable[len + 9 + indexI] = y + fpow(sin(angle), curviness) * h
 				batchTable[len + 10+ indexI] = endColor
 			end
 		end
@@ -124,12 +152,13 @@ do
 	---@param color2 Color
 	---@param vertexCount integer
 	---@param startAngle number
+	---@param curviness number
 	---@return string id
-	local function getId(color1, color2, vertexCount, startAngle, endAngle, rotation)
-		return format('%x%x%x%x;%x%x%x%x;%u;%f;%f;%f',
+	local function getId(color1, color2, vertexCount, startAngle, endAngle, rotation, curviness)
+		return format('%x%x%x%x;%x%x%x%x;%u;%f;%f;%f;%f',
 			color1.r, color1.g, color1.b, color1.a,
 			color2.r, color2.g, color2.b, color2.a,
-			vertexCount, startAngle, endAngle, rotation
+			vertexCount, startAngle, endAngle, rotation, curviness
 		)
 	end
 
@@ -141,19 +170,23 @@ do
 
 	local meshDraw = FindMetaTable('IMesh').Draw
 
-	---@param x number # CENTER of circle
-	---@param y number # CENTER of circle
+	---@param x number # CENTER X coordinate of circle
+	---@param y number # CENTER Y coordinate of circle
 	---@param w number x xradius # Width/X radius of circle
 	---@param h number y radius # Height/Y radius of circle
-	---@param vertexCount integer
-	---@param startAngle number
-	---@param endAngle  number
-	---@param colors Color | {[1]: Color, [2]: Color}
-	function circles.drawCircle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, rotation)
+	---@param vertexCount integer Vertex count that circle will have
+	---@param startAngle number Starting angle of sliced circle. Default is 0. MUST BE LOWER THAN END ANGLE
+	---@param endAngle  number Ending angle of sliced circle. Default is 360. MUST BE HIGHER THAN START ANGLE
+	---@param colors Color | {[1]: Color, [2]: Color} Color of circle. Can be a Color, or table with 2 colors inside.
+	---@param curviness number? Curviness ratio of circle. Think of circle defined as a formula like ``x^2+y^2=1``. But replace 2 with curviness.
+	---For squircle like in IOS, curviness is 4, resulting in ``x^4+y^4=1``
+	function circles.drawCircle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, rotation, curviness)
 		if colors[2] == nil then
 			colors[1] = colors
 			colors[2] = colors
 		end
+
+		curviness = 2 / (curviness or 2)
 
 		if vertexCount == nil then
 			vertexCount = 24
@@ -173,14 +206,14 @@ do
 		endAngle = endAngle * angleConverter
 
 		if batch.batching then
-			generateMeshBatched(x, y, w, h, vertexCount, startAngle, endAngle, colors)
+			generateMeshBatched(x, y, w, h, vertexCount, startAngle, endAngle, colors, curviness)
 		else
-			local id = getId(colors[1], colors[2], vertexCount, startAngle, endAngle, rotation)
+			local id = getId(colors[1], colors[2], vertexCount, startAngle, endAngle, rotation, curviness)
 
 			local meshObj = cachedCircleMeshes[id]
 
 			if meshObj == nil then
-				meshObj = generateSingleMesh(vertexCount, startAngle, endAngle, colors, rotation)
+				meshObj = generateSingleMesh(vertexCount, startAngle, endAngle, colors, rotation, curviness)
 				cachedCircleMeshes[id] = meshObj
 			end
 
@@ -233,13 +266,15 @@ do
 	---@param startU number
 	---@param endU number
 	---@param outlineWidth number # note, that this outlineWidth is between 0-1, cuz it's basically a percentage of radius
+	---@param curviness number
+	---@deprecated Internal variable, not meant to be used outside .
 	---@return IMesh
-	function circles.generateOutlineMeshSingle(vertexCount, startAngle, endAngle, colors, startU, endU, outlineWidth)
+	function circles.generateOutlineMeshSingle(vertexCount, startAngle, endAngle, colors, startU, endU, outlineWidth, curviness)
 		local meshObj = meshConstructor()
 
 		local startR, startG, startB, startA = colors[1].r, colors[1].g, colors[1].b, colors[1].a
 		local endR, endG, endB, endA = colors[2].r, colors[2].g, colors[2].b, colors[2].a
-		
+
 		local deltaAngle = endAngle - startAngle
 
 		local startRadius = 1 - outlineWidth
@@ -247,9 +282,9 @@ do
 			for i = 0, vertexCount do
 				local percent = i / vertexCount
 				local angle = startAngle + deltaAngle * percent
-				local sinn, coss = sin(angle), cos(angle)
+				local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
 
-				local u = startU + percent * (endU - startU) 
+				local u = startU + percent * (endU - startU)
 
 				meshPosition(coss * startRadius, sinn * startRadius, 0)
 				meshColor(startR, startG, startB, startA)
@@ -289,9 +324,10 @@ do
 	---@param startU number
 	---@param endU number
 	---@param outlineWidth number
+	---@param curviness number
 	---@return string id 
-	local function getId(color1, color2, vertexCount, startAngle, endAngle, startU, endU, outlineWidth)
-		return format('%x%x%x%x;%x%x%x%x;%u;%f;%f;%f;%f;%e', color1.r, color1.g, color1.b, color1.a, color2.r, color2.g, color2.b, color2.a, vertexCount, startAngle, endAngle, startU, endU, outlineWidth)
+	local function getId(color1, color2, vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
+		return format('%x%x%x%x;%x%x%x%x;%u;%f;%f;%f;%f;%e', color1.r, color1.g, color1.b, color1.a, color2.r, color2.g, color2.b, color2.a, vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
 	end
 
 	---@param x number
@@ -304,14 +340,16 @@ do
 	---@param colors {[1]: Color, [2]: Color}
 	---@param startU number
 	---@param endU number
+	---@param curviness number
 	---@param outlineWidth number # note, that this outlineWidth is between 0-1, cuz it's basically a percentage of radius
-	function circles.drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth)
-		local id = getId(colors[1], colors[2], vertexCount, startAngle, endAngle, startU, endU, outlineWidth)
+	---@deprecated Internal variable, not meant to be used outside.
+	function circles.drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth, curviness)
+		local id = getId(colors[1], colors[2], vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
 
 		local meshObj = cachedCircleOutlineMeshes[id]
 
 		if meshObj == nil then
-			meshObj = generateOutlineMeshSingle(vertexCount, startAngle, endAngle, colors, startU, endU, outlineWidth)
+			meshObj = generateOutlineMeshSingle(vertexCount, startAngle, endAngle, colors, startU, endU, outlineWidth, curviness)
 			cachedCircleOutlineMeshes[id] = meshObj
 		end
 
@@ -343,19 +381,21 @@ do
 
 	local drawOutlineSingle = circles.drawOutlineSingle
 	local max = math.max
-	---Draws circled outlines. UNBATCHED ONLY
-	---@param x number
-	---@param y number
-	---@param w number
-	---@param h number
-	---@param colors Color | {[1]: Color, [2]: Color}
-	---@param vertexCount integer
-	---@param startAngle number
-	---@param endAngle number
+	---Draws circled outline. UNBATCHED ONLY.
+	---@param x number # CENTER X coordinate of circled outline
+	---@param y number # CENTER Y coordinate of circled outline
+	---@param w number x xradius # Width/X radius of circled outline
+	---@param h number y radius # Height/Y radius of circled outline
+	---@param vertexCount integer Vertex count that circled outline will have
+	---@param startAngle number Starting angle of sliced circled outline. Default is 0. MUST BE LOWER THAN END ANGLE
+	---@param endAngle  number Ending angle of sliced circled outline. Default is 360. MUST BE HIGHER THAN START ANGLE
+	---@param colors Color | {[1]: Color, [2]: Color} Color of circledOutline. Can be a Color, or table with 2 colors inside.
+	---@param curviness number? Curviness ratio of circledOutline. Think of circledOutline defined as a formula like ``outlineRatio^2<=x^2+y^2<=1``. But replace 2 with curviness.
+	---For squircle like in IOS, curviness is 4, resulting in ``outlineRatio^4<=x^4+y^4<=1``
 	---@param startU number
 	---@param endU number
 	---@param outlineWidth number
-	function circles.drawOutline(x, y, w, h, colors, outlineWidth, vertexCount, startAngle, endAngle, material, startU, endU)
+	function circles.drawOutline(x, y, w, h, colors, outlineWidth, vertexCount, startAngle, endAngle, material, startU, endU, curviness)
 		if colors[2] == nil then
 			colors[1] = colors
 			colors[2] = colors
@@ -364,6 +404,8 @@ do
 		if vertexCount == nil then
 			vertexCount = 24
 		end
+
+		curviness = 2 / (curviness or 2)
 
 		if startAngle == nil then
 			startAngle = 0
@@ -381,7 +423,7 @@ do
 		endAngle = endAngle * angleConverter
 
 		outlineWidth = 1 / (1 + max(w, h) / outlineWidth)
-		drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth)
+		drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth, curviness)
 	end
 end
 

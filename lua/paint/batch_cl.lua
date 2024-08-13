@@ -1,5 +1,14 @@
+---@diagnostic disable: deprecated
 local paint = paint--[[@as paint]]
-
+---# Batching library of paint lib 
+---This is a really hard to explain thing, and made for experienced lua coders
+---
+---This library allows you to generate IMeshes on the fly, by using default
+---paint library draw functions
+---
+---In order to cache resulted IMesh of course!
+---
+---That allows you to batch your multiple shape in 1 single mesh in order to save draw calls
 ---@class batch
 local batch = {}
 
@@ -138,7 +147,7 @@ do
 	local panelRebuildMesh = function(self, x, y)
 		resetZ()
 			local iMesh = self.iMesh
-			if iMesh then 
+			if iMesh then
 				meshDestroy(iMesh)
 			end
 
@@ -169,7 +178,8 @@ do
 		end
 	end
 
-	---@class InjectedPanel : Panel
+	---@class InjectedPanel : Panel # The injected panel is a supporting class that actually behaves as a wrapped pannel. Made for people who like
+	---type checking, and lsp things. Used internally only.
 	---@field Paint function
 	---@field OnSizeChanged function
 	---@field OldOnSizeChanged function?
@@ -180,6 +190,8 @@ do
 	---@field PaintMesh function?
 	---@field iMesh IMesh?
 
+	---Wraps panel with some hacky functions that overrides paint function and OnChangeSize
+	---That is made for panel to use Panel:PaintMesh() when panel is updated (size updated/etc)
 	---@param panel Panel
 	function batch.wrapPanel(panel)
 		---@cast panel InjectedPanel
@@ -192,16 +204,16 @@ end
 
 do
 	---Adds triangle to batching queue. If you want to manually add some figures to paint batching, then you can use this.
-	---@param z number
+	---@param z number Z position of next triangle. You want to use paint.incrementZ for that
 	---@param x1 number
 	---@param y1 number
-	---@param color1 Color
+	---@param color1 Color color of first vertex
 	---@param x2 number
 	---@param y2 number
-	---@param color2 Color
+	---@param color2 Color color of second vertex
 	---@param x3 number
 	---@param y3 number
-	---@param color3 Color
+	---@param color3 Color color of third vertex
 	function batch.addTriangle(z, x1, y1, color1, x2, y2, color2, x3, y3, color3)
 		local len = batchTable[0]
 
