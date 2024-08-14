@@ -123,7 +123,7 @@ do
 		if num > 0 then
 			return num ^ power
 		else
-			return -(-num ^ power)
+			return -((-num) ^ power)
 		end
 	end
 
