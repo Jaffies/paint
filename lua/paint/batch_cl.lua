@@ -101,8 +101,8 @@ end
 
 do
 	local startPanel, endPanel = paint.startPanel, paint.endPanel
-	local meshDraw = FindMetaTable('IMesh').Draw
-	local meshDestroy = FindMetaTable('IMesh').Destroy
+	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
+	local meshDestroy = FindMetaTable('IMesh')--[[@as IMesh]].Destroy
 	local resetZ = paint.resetZ
 
 	local whiteMat = Material('vgui/white')

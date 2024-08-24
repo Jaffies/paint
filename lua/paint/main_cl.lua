@@ -35,7 +35,8 @@
 ---@field circles circles Circles! killer.
 local paint = {}
 
----@alias gradients Color | Color[]
+---@alias gradients Color | {[1] : Color, [2]: Color, [3]: Color, [4]: Color, [5]: Color?}
+---@alias linearGradient Color | {[1]: Color, [2]: Color}
 
 do
 	-- this fixes rendering issues with batching

@@ -168,7 +168,7 @@ do
 	local generateSingleMesh = circles.generateSingleMesh
 	local generateMeshBatched = circles.generateMeshBatched
 
-	local meshDraw = FindMetaTable('IMesh').Draw
+	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
 
 	---@param x number # CENTER X coordinate of circle
 	---@param y number # CENTER Y coordinate of circle
@@ -305,7 +305,7 @@ end
 do
 	local format = string.format
 
-	local meshDraw = FindMetaTable('IMesh').Draw
+	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
 	local pushModelMatrix = cam.PushModelMatrix
 	local popModelMatrix = cam.PopModelMatrix
 

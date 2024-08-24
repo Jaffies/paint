@@ -127,6 +127,31 @@ do
 		end
 	end
 
+	---@param radius number
+	---@param rightTop boolean?
+	---@param rightBottom boolean?
+	---@param leftBottom boolean?
+	---@param leftTop boolean?
+	---@return integer vertex count 
+	function roundedBoxes.getMeshVertexCount(radius, rightTop, rightBottom, leftBottom, leftTop)
+		if radius > 3 then
+			local vertsPerEdge = clamp(radius / 2, 3, 24)
+			return 6
+				+ (rightTop and vertsPerEdge or 0)
+				+ (rightBottom and vertsPerEdge or 0)
+				+ (leftBottom and vertsPerEdge or 0)
+				+ (leftTop and vertsPerEdge or 0)
+		else
+			return 6
+				+ (rightTop and 1 or 0)
+				+ (rightBottom and 1 or 0)
+				+ (leftBottom and 1 or 0)
+				+ (leftTop and 1 or 0)
+		end
+	end
+
+	local getMeshVertexCount = roundedBoxes.getMeshVertexCount
+
 	---@type Color[]
 	local centreTab = {}
 	--- Generates roundedBox mesh, used by outlines, 
@@ -141,7 +166,7 @@ do
 	---@param rightTop? boolean
 	---@param rightBottom? boolean
 	---@param leftBottom? boolean
-	---@param colors {[1] : Color, [2]: Color, [3]: Color, [4]:Color, [5] : Color?}
+	---@param colors Color[]
 	---@param u1 number
 	---@param v1 number
 	---@param u2 number
@@ -149,29 +174,16 @@ do
 	---@param curviness number?
 	---@deprecated Internal variable. Not meant to use outside
 	function roundedBoxes.generateSingleMesh(createVertex, mesh, radius, x, y, endX, endY, leftTop, rightTop, rightBottom, leftBottom, colors, u1, v1, u2, v2, curviness)
-		local count = 6
 		local vertsPerEdge = clamp(radius / 2, 3, 24)
 
 		local isRadiusBig = radius > 3
-
-		if isRadiusBig then
-			count = count + (rightTop and vertsPerEdge or 0)
-			count = count + (rightBottom and vertsPerEdge or 0)
-			count = count + (leftBottom and vertsPerEdge or 0)
-			count = count + (leftTop and vertsPerEdge or 0)
-		else
-			count = count + (rightTop and 1 or 0)
-			count = count + (rightBottom and 1 or 0)
-			count = count + (leftBottom and 1 or 0)
-			count = count + (leftTop and 1 or 0)
-		end
 
 		curviness = 2 / (curviness or 2)
 
 		local w, h = endX - x, endY - y
 
 		if mesh then
-			meshBegin(mesh, PRIMITIVE_POLYGON, count)
+			meshBegin(mesh, PRIMITIVE_POLYGON, getMeshVertexCount(radius, rightTop, rightBottom, leftBottom, leftTop))
 		end
 
 			local fifthColor = colors[5]
@@ -563,6 +575,7 @@ do
 	---@param v2 number #The texture V coordinate of the Bottom-Right corner of the rounded box.
 	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors : gradients, material? : IMaterial)
+	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors : gradients, material? : IMaterial, _ : nil, _ : nil, _: nil, _: nil, curviness : number)
 	function roundedBoxes.roundedBox(radius, x, y, w, h, colors, material, u1, v1, u2, v2, curviness)
 		roundedBoxEx(radius, x, y, w, h, colors, true, true, true, true, material, u1, v1, u2, v2, curviness)
 	end

@@ -217,7 +217,7 @@ do
 	local format = string.format
 
 	local meshConstructor = Mesh
-	local meshDraw = FindMetaTable('IMesh').Draw
+	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
 
 	local renderSetMaterial = render.SetMaterial
 
