@@ -117,6 +117,48 @@ do -- Additional stuff to scissor rect.
 end
 
 do
+	local vector = Vector()
+	local paintColoredMaterial = CreateMaterial( "testMaterial" .. SysTime(), "UnlitGeneric", {
+	  ["$basetexture"] = "color/white",
+	  ["$model"] = 1,
+	  ["$translucent"] = 1,
+	  ["$vertexalpha"] = 1,
+	  ["$vertexcolor"] = 1
+	} )
+
+	local recompute = paintColoredMaterial.Recompute
+	local setVector = paintColoredMaterial.SetVector
+	local setUnpacked = vector.SetUnpacked
+
+	---This function provides you a material with solid color, allowing you to replicate ``render.SetColorModulation``/``surface.SetDrawColor``
+	---
+	---Meant to be used to have paint's shapes have animated colors without rebuilding mesh every time color changes 
+	---
+	---It will tint every color of shape, but not override it. Meaning that yellow color wont be overriden to blue.
+	---
+	---instead it will be black because red/green components will be multiplied to 0, and blue component (which is 0, because its yellow) will be mutliplied by 1. Which equeals 0
+	---
+	---**Note:** You will have to call this function every time the color of coloredMaterial changes, because it uses 1 material and sets its color to what you want
+	---Example:
+	---```lua
+	---paint.outlines.drawOutline(32, 100, 100, 256, 256, {color_white, color_transparent}, paint.getColoredMaterial( HSVToColor(RealTime() * 100, 1, 1) ), 16 )
+	-----[[It will make halo/shadow with animated color]]
+	---```
+	---@param color Color color that material will have
+	---@return IMaterial coloredMaterial
+	function paint.getColoredMaterial(color)
+		setUnpacked(vector, color.r, color.g, color.b)
+		setVector(paintColoredMaterial, '$color', vector)
+		recompute(paintColoredMaterial)
+
+		return paintColoredMaterial
+	end
+
+
+
+end
+
+do
 	-- Helper functions
 	-- startPanel - pops model matrix and pushes
 
