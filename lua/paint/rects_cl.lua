@@ -84,20 +84,25 @@ do
 	---@param v1 number
 	---@param u2 number
 	---@param v2 number
+	---@param skew number? sets skew for top side of rect.
+	---@param topSize number? overrides size for top side of rect
 	---@deprecated Internal variable. Not meant to use outside
-	function rects.generateRectMesh(mesh, startX, startY, endX, endY, colors, u1, v1, u2, v2)
+	function rects.generateRectMesh(mesh, startX, startY, endX, endY, colors, u1, v1, u2, v2, skew, topSize)
+		local startTopX = startX + (skew or 0)
+		local endTopX = topSize and topSize > 0 and startTopX + topSize or endX + (skew or 0)
+
 		meshBegin(mesh, PRIMITIVE_QUADS, 1)
 			meshPosition(startX, endY, 0)
 			meshColor(unpackColor(colors[4]))
 			meshTexCoord(0, u1, v2)
 			meshAdvanceVertex()
 
-			meshPosition(startX, startY, 0)
+			meshPosition(startTopX, startY, 0)
 			meshColor(unpackColor(colors[1]))
 			meshTexCoord(0, u1, v1)
 			meshAdvanceVertex()
 
-			meshPosition(endX, startY, 0)
+			meshPosition(endTopX, startY, 0)
 			meshColor(unpackColor(colors[2]))
 			meshTexCoord(0, u2, v1)
 			meshAdvanceVertex()
@@ -241,15 +246,17 @@ do
 	---@param v1 number
 	---@param u2 number
 	---@param v2 number
+	---@param skew number sets elevation for top side of rect.
+	---@param topSize number overrides size for top side of rect
 	---@return string
-	local function getId(x, y, w, h, color1, color2, color3, color4, u1, v1, u2, v2)
-		return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f',
+	local function getId(x, y, w, h, color1, color2, color3, color4, u1, v1, u2, v2, skew, topSize)
+		return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f;%f;%f',
 			x, y, w, h,
 			color1.r, color1.g, color1.b, color1.a,
 			color2.r, color2.g, color2.b, color2.a,
 			color3.r, color3.g, color3.b, color3.a,
 			color4.r, color4.g, color4.b, color4.a,
-			u1, v1, u2, v2
+			u1, v1, u2, v2, skew, topSize
 		)
 	end
 
@@ -265,15 +272,19 @@ do
 	---@param v1 number
 	---@param u2 number
 	---@param v2 number
+	---@param skew number? sets elevation for top side of rect.
+	---@param topSize number? overrides size for top side of rect
 	---@overload fun(x : number, y : number, w : number, h : number, colors: gradients, material?: Material)
-	function rects.drawSingleRect(x, y, w, h, colors, material, u1, v1, u2, v2)
-		local id = getId(x, y, w, h, colors[1], colors[2], colors[3], colors[4], u1, v1, u2, v2)
+	function rects.drawSingleRect(x, y, w, h, colors, material, u1, v1, u2, v2, skew, topSize)
+		skew, topSize = skew or 0, topSize or 0
+
+		local id = getId(x, y, w, h, colors[1], colors[2], colors[3], colors[4], u1, v1, u2, v2, skew, topSize)
 
 		local mesh = cachedRectMeshes[id]
 		if mesh == nil then
 			mesh = meshConstructor()
 
-			generateRectMesh(mesh, x, y, x + w, y + h, colors, u1, v1, u2, v2)
+			generateRectMesh(mesh, x, y, x + w, y + h, colors, u1, v1, u2, v2, skew, topSize)
 
 			cachedRectMeshes[id] = mesh
 		end
@@ -370,8 +381,10 @@ do
 	---@param v1 number # The texture V coordinate of the Top-Left corner of the rectangle. Default : 0
 	---@param u2 number # The texture U coordinate of the Bottom-Right corner of the rectangle. Default : 1
 	---@param v2 number # The texture V coordinate of the Bottom-Right corner of the rectangle. Default : 1
+	---@param skew number? sets elevation for top side of rect.
+	---@param topSize number? overrides size for top side of rect
 	---@overload fun(x : number, y : number, w : number, h : number, colors: gradients, material? : IMaterial) # Overloaded variant without UV's. They are set to 0, 0, 1, 1
-	function rects.drawRect(x, y, w, h, colors, material, u1, v1, u2, v2)
+	function rects.drawRect(x, y, w, h, colors, material, u1, v1, u2, v2, skew, topSize)
 		if colors[4] == nil then
 			colors[1] = colors
 			colors[2] = colors
@@ -390,7 +403,7 @@ do
 			if rects.isBatching then
 				drawQuadBatchedRect(x, y, w, h, colors)
 			else
-				drawSingleRect(x, y, w, h, colors, material, u1, v1, u2, v2)
+				drawSingleRect(x, y, w, h, colors, material, u1, v1, u2, v2, skew, topSize)
 			end
 		end
 	end

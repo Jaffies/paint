@@ -503,7 +503,6 @@ end
 
 do
 	local defaultMat = Material('vgui/white')
-	local min = math.min
 
 	local roundedBoxExSingle = roundedBoxes.roundedBoxExSingle
 	local roundedBoxExBatched = roundedBoxes.roundedBoxExBatched
@@ -546,8 +545,6 @@ do
 
 		if radius == 0 then
 			leftTop, rightTop, rightBottom, leftBottom = false, false, false, false
-		else
-			radius = min(w / 2, h / 2, radius)
 		end
 
 		material = material or defaultMat

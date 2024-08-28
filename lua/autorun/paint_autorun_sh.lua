@@ -34,5 +34,13 @@ load('paint/examples/controls/main_cl.lua')
 
 local VERSION = 1.09
 
-print('paint library has been loaded. Version is: ' .. VERSION)
-print('copyright @jaffies, aka @mikhail_svetov')
+local function coloredMsgC(text)
+	for i = 1, #text do
+		MsgC(HSVToColor(math.random(0, 360), 1, 1), string.sub(text, i, i) )
+	end
+	MsgC('\n')
+end
+
+coloredMsgC('paint library has been loaded. Version is: ' .. VERSION)
+coloredMsgC('copyright @jaffies, aka @mikhail_svetov')
+MsgC(Color(255, 20, 20), '[Warning] ', color_white, 'paint library removed safeguards for radius in outlines/roundedboxes.\n', Color(100, 255, 100), 'It will likely break stuff. Sorry for that.\n')

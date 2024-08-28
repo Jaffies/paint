@@ -27,11 +27,11 @@ local paint = paint
 
 local RT_SIZE = 256
 
-local BLUR = 20
-local BLUR_PASSES = 3
+local BLUR = 10
+local BLUR_PASSES = 1
 local BLUR_TIME = 1 / 30
 
-local BLUR_EXPENSIVE = false
+local BLUR_EXPENSIVE = true -- This is set to true because default gmodscreenspace shader actually sucks and makes noise on some devices
 
 local RT_FLAGS = 2 + 256 + 32768
 local TEXTURE_PREFIX = 'paint_library_rt_'
@@ -39,7 +39,7 @@ local MATERIAL_PREFIX = 'paint_library_material_'
 
 ---@type {[string] : ITexture}
 local textures = {
-	default = GetRenderTargetEx(TEXTURE_PREFIX .. 'default', RT_SIZE, RT_SIZE, 1, 2, RT_FLAGS, 0, 2)
+	default = GetRenderTargetEx(TEXTURE_PREFIX .. 'default', RT_SIZE, RT_SIZE, 1, 2, RT_FLAGS, 0, 3)
 }
 
 ---@type {[string] : number}
@@ -216,7 +216,7 @@ do
 		id = id or 'default'
 
 		if textures[id] == nil then
-			local tex = getRenderTargetEx(TEXTURE_PREFIX .. id, RT_SIZE, RT_SIZE, 1, 2, RT_FLAGS, 0, 2)
+			local tex = getRenderTargetEx(TEXTURE_PREFIX .. id, RT_SIZE, RT_SIZE, 1, 2, RT_FLAGS, 0, 3)
 			textures[id] = tex
 			textureTimes[id] = 0
 

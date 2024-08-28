@@ -382,8 +382,6 @@ do
 	local drawOutlineSingle = outlines.drawOutlineSingle
 	local drawOutlineBatched = outlines.drawOutlineBatched
 
-	local min = math.min
-
 	---Identical to drawOutline other than that it allows you to specify specific corners to be rounded.
 	---@param radius number
 	---@param x number start X position of outline
@@ -422,7 +420,6 @@ do
 
 		inside = inside or false
 		curviness = curviness or 2
-		radius = min(radius, w / 2, h / 2)
 
 		if batch.batching then
 			drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside)
