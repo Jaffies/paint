@@ -10,34 +10,7 @@ files = [
 ]
 
 wrapper = """
-if SERVER then return end
-
-do
-if CLIENT and BRANCH ~= 'x86-64' then
-print('paint library detoured mesh.Position to support (x, y, z) overload because gmod hasn\\'t updated yet on non x64-86')
-local vec = Vector()
-local vecSetUnpacked = vec.SetUnpacked
-mesh.OldPosition = mesh.OldPosition or mesh.Position
----@param x number|Vector
----@param y? number
----@param z? number
----@overload fun(x: Vector)
-function mesh.Position(x, y, z)
-if y == nil then
----@cast x Vector
-mesh.OldPosition(x)
-return
-end
----@cast y number
----@cast z number
----@cast x number
-vecSetUnpacked(vec, x, y, z)
-mesh.OldPosition(vec)
-end
-end
-end
-
-do
+if SERVER then return AddCSLuaFile() end
 """ # do at the end is because of 'end do'.join()
 
 contents = []
@@ -46,7 +19,7 @@ for i in files:
         contents.append(f.read())
 
 version = 1.10
-totalText = f'{wrapper} {" end do ".join(contents)} end print("paint library loaded! Version is {version}!")'
+totalText = f'{wrapper} do {" end do ".join(contents)} end print("paint library loaded! Version is {version}!")\n print("Copyright @mikhail_svetov aka @jaffies")'
 
 with open('paint_minified_source.lua', 'w') as f:
     f.write(totalText)
