@@ -576,6 +576,9 @@ do
 	function roundedBoxes.roundedBox(radius, x, y, w, h, colors, material, u1, v1, u2, v2, curviness)
 		roundedBoxEx(radius, x, y, w, h, colors, true, true, true, true, material, u1, v1, u2, v2, curviness)
 	end
+
+	roundedBoxes.drawRoundedBox = roundedBoxes.roundedBox
+	roundedBoxes.drawRoundedBoxEx = roundedBoxes.roundedBoxEx
 end
 
 do
@@ -617,6 +620,503 @@ do
 		len = nil
 		return tab
 	end
+end
+
+do
+	local meshConstructor = Mesh
+
+	local PRIMITIVE_QUADS = MATERIAL_QUADS
+
+	local lerp = Lerp
+	local bilinearInterpolation = paint.bilinearInterpolation
+
+	local meshBegin = mesh.Begin
+	local meshEnd = mesh.End
+	local meshPosition = mesh.Position
+	local meshTexCoord = mesh.TexCoord
+	local meshColor = mesh.Color
+	local meshAdvanceVertex = mesh.AdvanceVertex
+
+	---@param radius number radius of corners
+	---@param x number startX position
+	---@param y number startY position
+	---@param w number width
+	---@param h number height
+	---@param colors {[1]: Color, [2]: Color, [3]: Color, [4]: Color}
+	---@return IMesh
+	function roundedBoxes.generateSimpleRoundedBox(radius, x, y, w, h, colors)
+		local iMesh = meshConstructor()
+
+		local color1, color2, color3, color4 = colors[1], colors[2], colors[3], colors[4]
+
+		local radiusToW, radiusToH = radius / w, radius / h
+
+		local color1R, color1G, color1B, color1A = color1.r, color1.g, color1.b, color1.a
+		local color2R, color2G, color2B, color2A = color2.r, color2.g, color2.b, color2.a
+		local color3R, color3G, color3B, color3A = color3.r, color3.g, color3.b, color3.a
+		local color4R, color4G, color4B, color4A = color4.r, color4.g, color4.b, color4.a
+
+		meshBegin(iMesh, PRIMITIVE_QUADS, 9)
+			do
+				meshPosition(x, y + radius, 0)
+				meshColor(
+					lerp(radiusToH, color1R, color4R),
+					lerp(radiusToH, color1G, color4G),
+					lerp(radiusToH, color1B, color4B),
+					lerp(radiusToH, color1A, color4A)
+				)
+				meshTexCoord(0, 0, 1)
+				meshAdvanceVertex()
+
+				meshPosition(x, y, 0)
+				meshColor(color1R, color1G, color1B, color1A)
+				meshTexCoord(0, 0, 0)
+				meshAdvanceVertex()
+
+				meshPosition(x + radius, y, 0)
+				meshColor(
+					lerp(radiusToW, color1R, color2R),
+					lerp(radiusToW, color1G, color2G),
+					lerp(radiusToW, color1B, color2B),
+					lerp(radiusToW, color1A, color2A)
+				)
+				meshTexCoord(0, 1, 0)
+				meshAdvanceVertex()
+
+				meshPosition(x + radius, y + radius, 0)
+				meshColor(
+					bilinearInterpolation(radiusToW, radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(radiusToW, radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(radiusToW, radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(radiusToW, radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 1, 1)
+				meshAdvanceVertex()
+				-- top left corner
+			end
+
+			do
+				meshPosition(x + w - radius, y + radius, 0)
+				meshColor(
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 1, 1)
+				meshAdvanceVertex()
+
+				meshPosition(x + w - radius, y, 0)
+				meshColor(
+					lerp(radiusToW, color2R, color1R),
+					lerp(radiusToW, color2G, color1G),
+					lerp(radiusToW, color2B, color1B),
+					lerp(radiusToW, color2A, color1A)
+				)
+				meshTexCoord(0, 1, 0)
+				meshAdvanceVertex()
+
+				meshPosition(x + w, y, 0)
+				meshColor(
+					color2R, color2G, color2B, color2A
+				)
+				meshTexCoord(0, 0, 0)
+				meshAdvanceVertex()
+
+				meshPosition(x + w, y + radius, 0)
+				meshColor(
+					lerp(radiusToH, color2R, color3R),
+					lerp(radiusToH, color2G, color3G),
+					lerp(radiusToH, color2B, color3B),
+					lerp(radiusToH, color2A, color3A)
+				)
+				meshTexCoord(0, 0, 1)
+				meshAdvanceVertex()
+				--top right corner
+			end
+
+			do
+				meshPosition(x + w - radius, y + h, 0)
+				meshColor(
+					lerp(radiusToW, color3R, color4R),
+					lerp(radiusToW, color3G, color4G),
+					lerp(radiusToW, color3B, color4B),
+					lerp(radiusToW, color3A, color4A)
+				)
+				meshTexCoord(0, 1, 0)
+				meshAdvanceVertex()
+
+				meshPosition(x + w - radius, y + h - radius, 0)
+				meshColor(
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 1, 1)
+				meshAdvanceVertex()
+
+				meshPosition(x + w, y + h - radius, 0)
+				meshColor(
+					lerp(radiusToH, color3R, color2R),
+					lerp(radiusToH, color3G, color2G),
+					lerp(radiusToH, color3B, color2B),
+					lerp(radiusToH, color3A, color2A)
+				)
+				meshTexCoord(0, 0, 1)
+				meshAdvanceVertex()
+
+				meshPosition(x + w, y + h, 0)
+				meshColor(
+					color3R, color3G, color3B, color3A
+				)
+				meshTexCoord(0, 0, 0)
+				meshAdvanceVertex()
+				--bottom right corner
+			end
+
+			do
+				meshPosition(x, y + h, 0)
+				meshColor(
+					color4R, color4G, color4B, color4A
+				)
+				meshTexCoord(0, 0, 0)
+				meshAdvanceVertex()
+
+				meshPosition(x, y + h - radius, 0)
+				meshColor(
+					lerp(radiusToH, color4R, color1R),
+					lerp(radiusToH, color4G, color1G),
+					lerp(radiusToH, color4B, color1B),
+					lerp(radiusToH, color4A, color1A)
+				)
+				meshTexCoord(0, 0, 1)
+				meshAdvanceVertex()
+
+				meshPosition(x + radius, y + h - radius, 0)
+				meshColor(
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 1, 1)
+				meshAdvanceVertex()
+
+				meshPosition(x + radius, y + h, 0)
+				meshColor(
+					lerp(radiusToW, color4R, color3R),
+					lerp(radiusToW, color4G, color3G),
+					lerp(radiusToW, color4B, color3B),
+					lerp(radiusToW, color4A, color3A)
+				)
+				meshTexCoord(0, 1, 0)
+				meshAdvanceVertex()
+				--botom left corner
+			end
+
+			do
+				meshPosition(x, y + h - radius, 0)
+				meshColor(
+					lerp( radiusToH, color4R, color1R),
+					lerp( radiusToH, color4G, color1G),
+					lerp( radiusToH, color4B, color1B),
+					lerp( radiusToH, color4A, color1A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+
+				meshPosition(x, y + radius, 0)
+				meshColor(
+					lerp(radiusToH, color1R, color4R),
+					lerp(radiusToH, color1G, color4G),
+					lerp(radiusToH, color1B, color4B),
+					lerp(radiusToH, color1A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + radius, y + radius, 0)
+				meshColor(
+					bilinearInterpolation(radiusToW, radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(radiusToW, radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(radiusToW, radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(radiusToW, radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + radius, y + h - radius, 0)
+				meshColor(
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+				-- left fill
+			end
+
+			do
+				meshPosition(x + w - radius, y + h - radius, 0)
+				meshColor(
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+
+				meshPosition(x + w - radius, y + radius, 0)
+				meshColor(
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + w, y + radius, 0)
+				meshColor(
+					lerp(radiusToH, color2R, color3R),
+					lerp(radiusToH, color2G, color3G),
+					lerp(radiusToH, color2B, color3B),
+					lerp(radiusToH, color2A, color3A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + w, y + h - radius, 0)
+				meshColor(
+					lerp(radiusToH, color3R, color2R),
+					lerp(radiusToH, color3G, color2G),
+					lerp(radiusToH, color3B, color2B),
+					lerp(radiusToH, color3A, color2A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+				-- right fill
+			end
+
+			do
+				meshPosition(x + radius, y + h - radius, 0)
+				meshColor(
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+
+				meshPosition(x + radius, y + radius, 0)
+				meshColor(
+					bilinearInterpolation(radiusToW, radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(radiusToW, radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(radiusToW, radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(radiusToW, radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + w - radius, y + radius, 0)
+				meshColor(
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + w - radius, y + h - radius, 0)
+				meshColor(
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+				-- center fill
+			end
+
+			do
+				meshPosition(x + radius, y + radius, 0)
+				meshColor(
+					bilinearInterpolation(radiusToW, radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(radiusToW, radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(radiusToW, radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(radiusToW, radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+
+				meshPosition(x + radius, y, 0)
+				meshColor(
+					lerp(radiusToW, color1R, color2R),
+					lerp(radiusToW, color1G, color2G),
+					lerp(radiusToW, color1B, color2B),
+					lerp(radiusToW, color1A, color2A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + w - radius, y, 0)
+				meshColor(
+					lerp(radiusToW, color2R, color1R),
+					lerp(radiusToW, color2G, color1G),
+					lerp(radiusToW, color2B, color1B),
+					lerp(radiusToW, color2A, color1A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + w - radius, y + radius, 0)
+				meshColor(
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(1 - radiusToW, radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+				--top fill
+			end
+
+			do
+				meshPosition(x + radius, y + h, 0)
+				meshColor(
+					lerp(radiusToW, color4R, color3R),
+					lerp(radiusToW, color4G, color3G),
+					lerp(radiusToW, color4B, color3B),
+					lerp(radiusToW, color4A, color3A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+
+				meshPosition(x + radius, y + h - radius, 0)
+				meshColor(
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(radiusToW, 1 - radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + w - radius, y + h - radius, 0)
+				meshColor(
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1R, color2R, color3R, color4R),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1G, color2G, color3G, color4G),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1B, color2B, color3B, color4B),
+					bilinearInterpolation(1 - radiusToW, 1 - radiusToH, color1A, color2A, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.6)
+				meshAdvanceVertex()
+
+				meshPosition(x + w - radius, y + h, 0)
+				meshColor(
+					lerp(radiusToW, color3R, color4R),
+					lerp(radiusToW, color3G, color4G),
+					lerp(radiusToW, color3B, color4B),
+					lerp(radiusToW, color3A, color4A)
+				)
+				meshTexCoord(0, 0.8, 0.4)
+				meshAdvanceVertex()
+				--bottom fill
+			end
+		meshEnd()
+
+		return iMesh
+	end
+
+	local format = string.format
+
+	local texCorner8 = Material( "gui/corner8" )
+	local texCorner16 = Material( "gui/corner16" )
+	local texCorner32 = Material( "gui/corner32" )
+	local texCorner64 = Material( "gui/corner64" )
+	local texCorner512 = Material( "gui/corner512" )
+
+	local generateSimpleRoundedBox = roundedBoxes.generateSimpleRoundedBox
+
+	---@type {[string]: IMesh}
+	local cachedSimpleRoundedBoxMeshes = {}
+
+	local matrix = Matrix()
+	local setField = matrix.SetField
+
+	local pushModelMatrix = cam.PushModelMatrix
+	local popModelMatrix = cam.PopModelMatrix
+
+	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
+	local setMaterial = render.SetMaterial
+
+	---@param radius number
+	---@param w number
+	---@param h number
+	---@param color1 Color
+	---@param color2 Color
+	---@param color3 Color
+	---@param color4 Color
+	---@return string
+	local function getId(radius, w, h, color1, color2, color3, color4)
+		return format('%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x', radius, w, h,
+			color1.r, color1.g, color1.b, color1.a,
+			color2.r, color2.g, color2.b, color2.a,
+			color3.r, color3.g, color3.b, color3.a,
+			color4.r, color4.g, color4.b, color4.a
+		)
+	end
+
+	---@param radius integer radius of rounded box corners
+	---@param x integer start x position
+	---@param y integer start y position
+	---@param w integer width
+	---@param h integer height
+	---@param colors Color | {[1] : Color, [2]: Color, [3]: Color, [4]: Color}
+	function roundedBoxes.drawSimpleRoundedBox(radius, x, y, w, h, colors)
+		if colors[4] == nil then
+			colors[1] = colors
+			colors[2] = colors
+			colors[3] = colors
+			colors[4] = colors
+		end
+
+		local id = getId(radius, w, h, colors[1], colors[2], colors[3], colors[4])
+
+		local meshObj = cachedSimpleRoundedBoxMeshes[id]
+
+		if meshObj == nil then
+			meshObj = generateSimpleRoundedBox(radius, 0, 0, w, h, colors)
+			cachedSimpleRoundedBoxMeshes[id] = meshObj
+		end
+
+		setField(matrix, 1, 4, x)
+		setField(matrix, 2, 4, y)
+
+		local material = texCorner8
+		if radius > 64 then material = texCorner512
+		elseif radius > 32 then material = texCorner64
+		elseif radius > 16 then material = texCorner32
+		elseif radius > 8 then material = texCorner16 end
+
+		pushModelMatrix(matrix, true)
+			setMaterial(material)
+			meshDraw(meshObj)
+		popModelMatrix()
+	end
+
+	timer.Create('paint.simpleRoundedBoxesGarbageCollector', 60, 0, function()
+		for k, v in pairs(cachedSimpleRoundedBoxMeshes) do
+			v:Destroy()
+			cachedSimpleRoundedBoxMeshes[k] = nil
+		end
+	end)
 end
 
 _G.paint.roundedBoxes = roundedBoxes
