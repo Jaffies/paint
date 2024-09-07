@@ -609,6 +609,8 @@ do
 	---@param u2 number
 	---@param v2 number
 	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
+	---@return {x : number, y: number, u: number, v: number}[] # table that is supposed to be put into surface.DrawPoly
+	---@see surface.DrawPoly
 	function roundedBoxes.generateDrawPoly(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, u1, v1, u2, v2, curviness)
 		createdTable = {}
 		len = 0

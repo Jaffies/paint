@@ -243,4 +243,4 @@ do
 	end
 end
 
-_G.paint = paint
+_G.paint--[[@as paint]] = paint

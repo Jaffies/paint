@@ -46,6 +46,9 @@ do
 	---@type boolean?
 	local isInside
 
+	---@type number?
+	local cornerness = 1
+
 	---@type number
 	local outlineLeft = 0
 	---@type number
@@ -76,17 +79,17 @@ do
 		local newX, newY
 
 		if u < 0.5 then
-			newX = x - outlineLeft * ((1 - u) - 0.5) * 2
+			newX = x - outlineLeft * (((1 - u) - 0.5) * 2) ^ cornerness
 		elseif u ~= 0.5 then
-			newX = x + outlineRight * (u - 0.5) * 2
+			newX = x + outlineRight * ((u - 0.5) * 2) ^ cornerness
 		else
 			newX = x
 		end
 
 		if v < 0.5 then
-			newY = y - outlineTop * ((1 - v) - 0.5) * 2
+			newY = y - outlineTop * (((1 - v) - 0.5) * 2) ^ cornerness
 		elseif v ~= 0.5 then
-			newY = y + outlineBottom * (v - 0.5) * 2
+			newY = y + outlineBottom * ((v - 0.5) * 2) ^ cornerness
 		else
 			newY = y
 		end
@@ -143,11 +146,13 @@ do
 	---@param b number
 	---@param curviness number?
 	---@param inside boolean?
+	---@param cornernessArg number?
 	---@deprecated Internal variable, not meant to be used outside.
-	function outlines.generateOutlineSingle(mesh, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b, curviness, inside)
+	function outlines.generateOutlineSingle(mesh, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b, curviness, inside, cornernessArg)
 		isInside = inside or false
 		outlineTop, outlineRight, outlineBottom, outlineLeft = t or 0, r or 0, b or 0, l or 0
 		curviness = curviness or 2
+		cornerness = cornernessArg or 1
 
 		isFirst = true
 		prevU = nil
@@ -177,12 +182,12 @@ do
 	---@param curviness number?
 	---@param inside boolean?
 	---@return string id
-	local function getId(radius, w, h, corners, color1, color2, l, t, r, b, curviness, inside)
-		return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%u;%u;%u;%u;%f;%u',
+	local function getId(radius, w, h, corners, color1, color2, l, t, r, b, curviness, inside, cornerness)
+		return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%u;%u;%u;%u;%f;%u;%f',
 			radius, w, h, corners,
 			color1.r, color1.g, color1.b, color1.a,
 			color2.r, color2.g, color2.b, color2.a,
-			l, t, r, b, curviness or 2, inside and 1 or 0
+			l, t, r, b, curviness or 2, inside and 1 or 0, cornerness
 		)
 	end
 
@@ -218,19 +223,21 @@ do
 	---@param b number
 	---@param curviness number?
 	---@param inside boolean
-	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineThickness: number)
-	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineWidth: number, outlineHeight: number)
-	function outlines.drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside)
+	---@param cornerness number? Number in which corner fraction (value between 0 and 1) will be powered to. Default is 1
+	---@deprecated Internal variable, not meant to be used outside.
+	function outlines.drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside, cornerness)
 		curviness = curviness or 2
 		inside = inside or false
+		cornerness = cornerness or 1
 
-		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors[1], colors[2], l, t, r, b, curviness, inside)
+
+		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors[1], colors[2], l, t, r, b, curviness, inside, cornerness)
 
 		local meshObj = cachedOutlinedMeshes[id]
 
 		if meshObj == nil then
 			meshObj = meshConstructor()
-			generateOutlineSingle(meshObj, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b, curviness, inside)
+			generateOutlineSingle(meshObj, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b, curviness, inside, cornerness)
 
 			cachedOutlinedMeshes[id] = meshObj
 		end
@@ -263,8 +270,6 @@ do
 	local prevX, prevY, prevU, prevV
 	---@type number?
 	local z
-
-	local isInside
 
 	local batch = paint.batch
 
@@ -327,7 +332,7 @@ do
 		prevX, prevY, prevU, prevV = x, y, u, v
 		do
 			if u < 0.5 then
-				x = x - outlineL * ((1 - u) - 0.5) * 2
+				x = x - outlineL * (((1 - u) - 0.5) * 2)
 			elseif u ~= 0.5 then
 				x = x + outlineR * (u - 0.5) * 2
 			end
@@ -365,12 +370,11 @@ do
 	---@param b number
 	---@param curviness number?
 	---@param inside boolean?
+	---@deprecated Internal variable, not meant to be used outside.
 	function outlines.drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, _, l, t, r, b, curviness, inside)
 		outlineL, outlineT, outlineR, outlineB = l, t, r, b
 		first = true
 		curviness = curviness or 2
-
-		isInside = inside or false
 
 		z = incrementZ()
 		generateSingleMesh(createVertex, nil, radius, x, y, x + w, y + h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1, curviness)
@@ -400,9 +404,10 @@ do
 	---@param b number Botton outline width
 	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
 	---@param inside boolean? Revert vertex order to make outlines visible only on inside (when outline thickness is below 0.). Default - false
+	---@param cornerness number? Value, by which corner fraction (which value is between 0 and 1) will be powered to. Default - 1.
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineThickness: number)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineWidth: number, outlineHeight: number)
-	function outlines.drawOutlineEx(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside)
+	function outlines.drawOutlineEx(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside, cornerness)
 		if colors[2] == nil then
 			colors[1] = colors
 			colors[2] = colors
@@ -420,11 +425,12 @@ do
 
 		inside = inside or false
 		curviness = curviness or 2
+		cornerness = cornerness or 1
 
 		if batch.batching then
 			drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside)
 		else
-			drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside)
+			drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside, cornerness)
 		end
 	end
 
@@ -444,12 +450,11 @@ do
 	---@param b number Botton outline width
 	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
 	---@param inside boolean?
-	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineThickness: number)
-	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineThickness: number, _: nil, _: nil, _: nil, curviness: number)
-	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineWidth: number, outlineHeight: number)
-	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineWidth: number, outlineHeight: number, _: nil, _: nil, curviness: number)
-	function outlines.drawOutline(radius, x, y, w, h, colors, material, l, t, r, b, curviness, inside)
-		drawOutlineEx(radius, x, y, w, h, true, true, true, true, colors, material, l, t, r, b, curviness, inside)
+	---@param cornerness number? Value, by which corner fraction (which value is between 0 and 1) will be powered to. Default - 1.
+	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineThickness: number, _ : nil, _ : nil, _ : nil, curviness: number?, inside : boolean?, cornerness: number?)
+	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineWidth: number, outlineHeight: number, _ : nil, _ : nil, curviness: number?, inside : boolean?, cornerness: number?)
+	function outlines.drawOutline(radius, x, y, w, h, colors, material, l, t, r, b, curviness, inside, cornerness)
+		drawOutlineEx(radius, x, y, w, h, true, true, true, true, colors, material, l, t, r, b, curviness, inside, cornerness)
 	end
 end
 
@@ -475,6 +480,7 @@ do
 	---@param outlineR number
 	---@param outlineB number
 	---@return IMesh
+	---@deprecated Internal variable, not meant to be used outside.
 	function outlines.generateBoxOutline(x, y, endX, endY, colors, outlineL, outlineT, outlineR, outlineB)
 		local meshObj = meshConstructor()
 
