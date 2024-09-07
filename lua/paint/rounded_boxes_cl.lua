@@ -99,10 +99,10 @@ local paint = _G.paint--[[@as paint]]
 -- paint.roundedBoxes.roundedBox(32, 10, 10, 300, 128, {color1, color3, color2, color3})
 -- -- Center is color3 not nil because interpolating between colors and between HSV is different
 --```
----@class roundedBoxes
+---@class paint.roundedBoxes
 local roundedBoxes = {}
 
----@alias createVertexFunc fun(x : number, y : number, u : number, v: number, colors : Color[], u1 : number, v1 : number, u2 : number, v2 : number)
+---@alias paint.createVertexFunc fun(x : number, y : number, u : number, v: number, colors : Color[], u1 : number, v1 : number, u2 : number, v2 : number)
 
 do
 	-- NOTE: it's likely implied that radius cant be 0, and can't be higher than width / 2 or height / 2
@@ -155,7 +155,7 @@ do
 	---@type Color[]
 	local centreTab = {}
 	--- Generates roundedBox mesh, used by outlines, 
-	---@param createVertex createVertexFunc # function used to create vertex.
+	---@param createVertex paint.createVertexFunc # function used to create vertex.
 	---@param mesh? IMesh
 	---@param radius number
 	---@param x number
@@ -297,7 +297,7 @@ do
 	local bilinearInterpolation = paint.bilinearInterpolation
 
 	---Internal function used in pair with mesh.Begin(PRIMITIVE_POLYGON). Used for single batched rounded boxes.
-	---@type createVertexFunc
+	---@type paint.createVertexFunc
 	local function createVertex(x, y, u, v, colors, u1, v1, u2, v2)
 		local leftTop, rightTop, rightBottom, leftBottom = colors[1], colors[2], colors[3], colors[4]
 		meshPosition(x, y, 0)
@@ -429,7 +429,7 @@ do
 	local color = Color
 	local bilinearInterpolation = paint.bilinearInterpolation
 
-	---@type createVertexFunc
+	---@type paint.createVertexFunc
 	local function createVertex(x, y, u, v, colors)
 		if prev1 == nil then
 			local z = incrementZ()

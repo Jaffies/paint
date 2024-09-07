@@ -30,7 +30,7 @@ local paint = paint--[[@as paint]]
 -- local color1, color2 = HSVToColor( RealTime() * 120, 1, 1 ), HSVToColor( RealTime() * 120 + 30, 1, 1 )
 -- paint.outlines.drawOutline( 32, 32, 18, 64, 64, { color1, color2 }, nil, 16 )
 ---```
----@class outlines
+---@class paint.outlines
 local outlines = {}
 
 do
@@ -60,7 +60,7 @@ do
 
 	local atan2 = math.atan2
 
-	---@type createVertexFunc
+	---@type paint.createVertexFunc
 	local function createVertex(x, y, u, v, colors)
 		if isFirst then
 			isFirst = false
@@ -369,9 +369,8 @@ do
 	---@param r number
 	---@param b number
 	---@param curviness number?
-	---@param inside boolean?
 	---@deprecated Internal variable, not meant to be used outside.
-	function outlines.drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, _, l, t, r, b, curviness, inside)
+	function outlines.drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, _, l, t, r, b, curviness)
 		outlineL, outlineT, outlineR, outlineB = l, t, r, b
 		first = true
 		curviness = curviness or 2
@@ -428,7 +427,7 @@ do
 		cornerness = cornerness or 1
 
 		if batch.batching then
-			drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside)
+			drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness)
 		else
 			drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside, cornerness)
 		end

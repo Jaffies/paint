@@ -9,7 +9,7 @@ local paint = paint--[[@as paint]]
 ---In order to cache resulted IMesh of course!
 ---
 ---That allows you to batch your multiple shape in 1 single mesh in order to save draw calls
----@class batch
+---@class paint.batch
 local batch = {}
 
 batch.batching = false

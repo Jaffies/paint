@@ -10,7 +10,7 @@
 ---2) They can be sliced
 ---3) They support stencils 
 ---4) They can have various curviness (squircles/SwiftUI/IOS rounded square )
----@class circles
+---@class paint.circles
 local circles = {}
 local paint = paint
 

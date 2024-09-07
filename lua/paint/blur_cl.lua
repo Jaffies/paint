@@ -16,7 +16,7 @@
 ---paint.roundedBoxes.roundedBox( 32, 120, 0, 120, 64, color_white, mat, (x + 120) / scrW, y / scrH, (x + 240) / scrW, (y + 64) / scrH )
 ---``` 
 
----@class blur
+---@class paint.blur
 local blur = {}
 local paint = paint
 

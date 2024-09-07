@@ -24,15 +24,15 @@
 ---
 --- Please, keep in mind that this library is still in development. 
 --- You can help the project by contributing to it at [github repository](https://github.com/jaffies/paint)
----@class paint paint d # paint library. Provides ability to draw shapes with mesh power
----@field lines lines # lines module of paint library. Can make batched and gradient lines out of the box
----@field roundedBoxes roundedBoxes # roundedBoxes provide better rounded boxes drawing because it makes them via meshes/polygons you name it.
----@field rects rects # Rect module, gives rects with ability to batch and gradient per corner support
----@field outlines outlines # outline module, gives you ability to create hollow outlines with  
----@field batch batch Unfinished module of batching. Provides a way to create IMeshes 
+---@class paint # paint library. Provides ability to draw shapes with mesh power
+---@field lines paint.lines # lines module of paint library. Can make batched and gradient lines out of the box
+---@field roundedBoxes paint.roundedBoxes # roundedBoxes provide better rounded boxes drawing because it makes them via meshes/polygons you name it.
+---@field rects paint.rects # Rect module, gives rects with ability to batch and gradient per corner support
+---@field outlines paint.outlines # outline module, gives you ability to create hollow outlines with  
+---@field batch paint.batch Unfinished module of batching. Provides a way to create IMeshes 
 ---@field examples paint.examples example library made for help people understand how paint library actually works. Can be opened via ``lua_run examples.showHelp()``
----@field blur blur blur library, provides a nice way to retrieve a cheap blur textures/materials
----@field circles circles Circles! killer.
+---@field blur paint.blur blur library, provides a nice way to retrieve a cheap blur textures/materials
+---@field circles paint.circles Circles! killer.
 local paint = {}
 
 ---@alias gradients Color | {[1] : Color, [2]: Color, [3]: Color, [4]: Color, [5]: Color?}
@@ -240,6 +240,84 @@ do
 		local top = leftTop == rightTop and leftTop or ( (1 - x) * leftTop + x * rightTop)
 		local bottom = leftBottom == rightBottom and leftBottom or ((1 - x) * leftBottom + x * rightBottom) -- more precise checking
 		return (1 - y) * top + y * bottom
+	end
+end
+
+do
+	---@class paint.verts
+	---@field x number
+	---@field y number
+	---@field color Color?
+	---@field u number?
+	---@field v number? # If `u` component is not nil, then it has to be nil too.
+
+	local meshConstructor = Mesh
+	local meshBegin = mesh.Begin
+	local meshEnd = mesh.End
+	local meshPosition = mesh.Position
+	local meshColor = mesh.Color
+	local meshTexCoord = mesh.TexCoord
+	local meshAdvanceVertex = mesh.AdvanceVertex
+
+	local colorWhite = color_white
+	local PRIMITIVE_POLYGON = MATERIAL_POLYGON
+
+	---Generates IMesh in order to be cached. Uses modified PolygonVertex struct like paint.drawPoly.
+	---@param vertices paint.verts[] # Same structure as Struct/PolygonVertex, but also it has `color` component, which default to `color_white`
+	---@see surface.drawPoly
+	---@return IMesh
+	function paint.generatePoly(vertices)
+		local len = #vertices
+
+		local iMesh = meshConstructor()
+
+		meshBegin(iMesh, PRIMITIVE_POLYGON, len)
+			for i = 1, len do
+				local v = vertices[i]
+
+				local color = v.color or colorWhite
+				meshPosition(v.x, v.y, 0)
+				meshColor(color.r, color.g, color.b, color.a)
+
+				if v.u then
+					meshTexCoord(0, v.u, v.v)
+				end
+
+				meshAdvanceVertex()
+			end
+		meshEnd()
+
+		return iMesh
+	end
+
+	local defaultMat = Material('vgui/white')
+
+	local renderSetMaterial = render.SetMaterial
+
+	---Draws polygon, simmirarly to surface.DrawPoly, but made via paint library with color argument addition.
+	---@param vertices paint.verts[] # Same structure as Struct/PolygonVertex, but also it has `color` component, which default to `color_white`
+	---@param material IMaterial? Material which will be used. Default is ``vgui/white``
+	---@see surface.DrawPoly
+	function paint.drawPoly(vertices, material)
+		local len = #vertices
+
+		renderSetMaterial(material or defaultMat)
+
+		meshBegin(PRIMITIVE_POLYGON, len)
+			for i = 1, len do
+				local v = vertices[i]
+
+				local color = v.color or colorWhite
+				meshPosition(v.x, v.y, 0)
+				meshColor(color.r, color.g, color.b, color.a)
+
+				if v.u then
+					meshTexCoord(0, v.u, v.v)
+				end
+
+				meshAdvanceVertex()
+			end
+		meshEnd()
 	end
 end
 

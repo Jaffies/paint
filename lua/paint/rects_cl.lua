@@ -26,7 +26,7 @@ local paint = paint--[[@as paint]]
 ---	end
 ---paint.rects.stopBatching()
 ---```
----@class rects
+---@class paint.rects
 local rects = {}
 
 do

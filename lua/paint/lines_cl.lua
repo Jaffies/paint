@@ -25,7 +25,7 @@ local paint = paint--[[@as paint]]
 ---	end
 ---paint.lines.stopBatching()
 ---```
----@class lines (exact)
+---@class paint.lines
 ---@field drawLine function
 ---@field startBatching function
 ---@field stopbatching function
