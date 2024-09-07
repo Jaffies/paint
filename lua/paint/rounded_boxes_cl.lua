@@ -344,7 +344,7 @@ do
 		local color1, color2, color3, color4, color5 = colors[1], colors[2], colors[3], colors[4], colors[5]
 
 		if color5 == nil then
-			return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f;%f',
+			return format('%f;%f;%f;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f;%f',
 				radius, w, h, corners,
 				color1.r, color1.g, color1.b, color1.a,
 				color2.r, color2.g, color2.b, color2.a,
@@ -353,7 +353,7 @@ do
 				u1, v1, u2, v2, curviness
 			)
 		else
-			return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f;%f',
+			return format('%f;%f;%f;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f;%f',
 				radius, w, h, corners,
 				color1.r, color1.g, color1.b, color1.a,
 				color2.r, color2.g, color2.b, color2.a,
@@ -1067,7 +1067,7 @@ do
 	---@param color4 Color
 	---@return string
 	local function getId(radius, w, h, color1, color2, color3, color4)
-		return format('%u;%u;%u;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x', radius, w, h,
+		return format('%f;%f;%f;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x', radius, w, h,
 			color1.r, color1.g, color1.b, color1.a,
 			color2.r, color2.g, color2.b, color2.a,
 			color3.r, color3.g, color3.b, color3.a,

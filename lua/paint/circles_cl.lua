@@ -327,7 +327,7 @@ do
 	---@param curviness number
 	---@return string id 
 	local function getId(color1, color2, vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
-		return format('%x%x%x%x;%x%x%x%x;%u;%f;%f;%f;%f;%e', color1.r, color1.g, color1.b, color1.a, color2.r, color2.g, color2.b, color2.a, vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
+		return format('%x%x%x%x;%x%x%x%x;%u;%f;%f;%f;%f;%f;%f', color1.r, color1.g, color1.b, color1.a, color2.r, color2.g, color2.b, color2.a, vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
 	end
 
 	---@param x number

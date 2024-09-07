@@ -183,7 +183,7 @@ do
 	---@param inside boolean?
 	---@return string id
 	local function getId(radius, w, h, corners, color1, color2, l, t, r, b, curviness, inside, cornerness)
-		return format('%u;%u;%u;%u;%x%x%x%x;%x%x%x%x;%u;%u;%u;%u;%f;%u;%f',
+		return format('%f;%f;%f;%u;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f;%f;%u;%f',
 			radius, w, h, corners,
 			color1.r, color1.g, color1.b, color1.a,
 			color2.r, color2.g, color2.b, color2.a,
