@@ -831,7 +831,7 @@ do
 		local rt = GetRenderTargetEx(name .. '_clamped', size, size, 1, 2, 270, 0, 12)
 
 		render.PushRenderTarget(rt)
-			render.Clear(0, 0, 0, 0, true, true)
+			render.Clear(255, 255, 255, 0, true, true)
 			cam.Start2D()
 				surface.SetMaterial(material)
 				surface.SetDrawColor(255, 255, 255)
