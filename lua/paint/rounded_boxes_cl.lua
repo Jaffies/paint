@@ -627,7 +627,7 @@ end
 do
 	local meshConstructor = Mesh
 
-	local PRIMITIVE_QUADS = MATERIAL_QUADS
+	local PRIMITIVE_POLYGON = MATERIAL_POLYGON
 
 	local meshBegin = mesh.Begin
 	local meshEnd = mesh.End
@@ -658,164 +658,91 @@ do
 
 		local radiusW, radiusH = halfW / radius, halfH / radius
 
-		meshBegin(iMesh, PRIMITIVE_QUADS, 4)
-			do
-				meshPosition(x, y + halfH, 0)
-				meshColor(
-					(color1R + color4R) * 0.5,
-					(color1G + color4G) * 0.5,
-					(color1B + color4B) * 0.5,
-					(color1A + color4A) * 0.5
-				)
-				meshTexCoord(0, 0, radiusH)
-				meshAdvanceVertex()
+		meshBegin(iMesh, PRIMITIVE_POLYGON, 10)
+			meshPosition(x + halfW, y + halfH, 0) -- center
+			meshColor(
+				(color1R + color2R + color3R + color4R) * 0.25,
+				(color1G + color2G + color3G + color4G) * 0.25,
+				(color1B + color2B + color3B + color4B) * 0.25,
+				(color1A + color2A + color3A + color4A) * 0.25
+			)
+			meshTexCoord(0, radiusW, radiusH)
+			meshAdvanceVertex()
 
-				meshPosition(x, y, 0)
-				meshColor(color1R, color1G, color1B, color1A)
-				meshTexCoord(0, 0, 0)
-				meshAdvanceVertex()
+			meshPosition(x, y, 0)
+			meshColor(
+				color1R, color1G, color1B, color1A
+			)
+			meshTexCoord(0, 0, 0)
+			meshAdvanceVertex()
 
-				meshPosition(x + halfW, y, 0)
-				meshColor(
-					(color1R + color2R) * 0.5,
-					(color1G + color2G) * 0.5,
-					(color1B + color2B) * 0.5,
-					(color1A + color2A) * 0.5
-				)
-				meshTexCoord(0, radiusW, 0)
-				meshAdvanceVertex()
+			meshPosition(x + halfW, y, 0)
+			meshColor(
+				(color1R + color2R) * 0.5,
+				(color1G + color2G) * 0.5,
+				(color1B + color2B) * 0.5,
+				(color1A + color2A) * 0.5
+			)
+			meshTexCoord(0, radiusW, 0)
+			meshAdvanceVertex()
 
-				meshPosition(x + halfW, y + halfH, 0)
-				meshColor(
-					(color1R + color2R + color3R + color4R) * 0.25,
-					(color1G + color2G + color3G + color4G) * 0.25,
-					(color1B + color2B + color3B + color4B) * 0.25,
-					(color1A + color2A + color3A + color4A) * 0.25
-				)
-				meshTexCoord(0, radiusW, radiusH)
-				meshAdvanceVertex()
-				-- top left corner
-			end
+			meshPosition(x + w, y, 0)
+			meshColor(
+				color1R, color1G, color1B, color1A
+			)
+			meshTexCoord(0, 0, 0)
+			meshAdvanceVertex()
 
-			do
-				meshPosition(x + halfW, y + halfH, 0)
-				meshColor(
-					(color1R + color2R + color3R + color4R) * 0.25,
-					(color1G + color2G + color3G + color4G) * 0.25,
-					(color1B + color2B + color3B + color4B) * 0.25,
-					(color1A + color2A + color3A + color4A) * 0.25
-				)
-				meshTexCoord(0, radiusW, radiusH)
-				meshAdvanceVertex()
+			meshPosition(x + w, y + halfH, 0)
+			meshColor(
+				(color3R + color2R) * 0.5,
+				(color3G + color2G) * 0.5,
+				(color3B + color2B) * 0.5,
+				(color3A + color2A) * 0.5
+			)
+			meshTexCoord(0, 0, radiusH)
+			meshAdvanceVertex()
 
-				meshPosition(x + halfW, y, 0)
-				meshColor(
-					(color1R + color2R) * 0.5,
-					(color1G + color2G) * 0.5,
-					(color1B + color2B) * 0.5,
-					(color1A + color2A) * 0.5
-				)
-				meshTexCoord(0, radiusW, 0)
-				meshAdvanceVertex()
+			meshPosition(x + w, y + w, 0)
+			meshColor(
+				color3R, color3G, color3B, color3A
+			)
+			meshTexCoord(0, 0, 0)
+			meshAdvanceVertex()
 
-				meshPosition(x + w, y, 0)
-				meshColor(
-					color2R, color2G, color2B, color2A
-				)
-				meshTexCoord(0, 0, 0)
-				meshAdvanceVertex()
+			meshPosition(x + halfW, y + w, 0)
+			meshColor(
+				(color3R + color4R) * 0.5,
+				(color3G + color4G) * 0.5,
+				(color3B + color4B) * 0.5,
+				(color3A + color4A) * 0.5
+			)
+			meshTexCoord(0, radiusW, 0)
+			meshAdvanceVertex()
 
-				meshPosition(x + w, y + halfH, 0)
-				meshColor(
-					(color2R + color3R) * 0.5,
-					(color2G + color3G) * 0.5,
-					(color2B + color3B) * 0.5,
-					(color2A + color3A) * 0.5
-				)
-				meshTexCoord(0, 0, radiusH)
-				meshAdvanceVertex()
-				--top right corner
-			end
+			meshPosition(x, y + w, 0)
+			meshColor(
+				color3R, color3G, color3B, color3A
+			)
+			meshTexCoord(0, 0, 0)
+			meshAdvanceVertex()
 
-			do
-				meshPosition(x + halfW, y + h, 0)
-				meshColor(
-					(color3R + color4R) * 0.5,
-					(color3G + color4G) * 0.5,
-					(color3B + color4B) * 0.5,
-					(color3A + color4A) * 0.5
-				)
-				meshTexCoord(0, radiusW, 0)
-				meshAdvanceVertex()
+			meshPosition(x, y + halfW, 0)
+			meshColor(
+				(color1R + color4R) * 0.5,
+				(color1G + color4G) * 0.5,
+				(color1B + color4B) * 0.5,
+				(color1A + color4A) * 0.5
+			)
+			meshTexCoord(0, 0, radiusH)
+			meshAdvanceVertex()
 
-				meshPosition(x + halfW, y + halfH, 0)
-				meshColor(
-					(color1R + color2R + color3R + color4R) * 0.25,
-					(color1G + color2G + color3G + color4G) * 0.25,
-					(color1B + color2B + color3B + color4B) * 0.25,
-					(color1A + color2A + color3A + color4A) * 0.25
-				)
-				meshTexCoord(0, radiusW, radiusH)
-				meshAdvanceVertex()
-
-				meshPosition(x + w, y + halfH, 0)
-				meshColor(
-					(color2R + color3R) * 0.5,
-					(color2G + color3G) * 0.5,
-					(color2B + color3B) * 0.5,
-					(color2A + color3A) * 0.5
-				)
-				meshTexCoord(0, 0, radiusH)
-				meshAdvanceVertex()
-
-				meshPosition(x + w, y + h, 0)
-				meshColor(
-					color3R, color3G, color3B, color3A
-				)
-				meshTexCoord(0, 0, 0)
-				meshAdvanceVertex()
-				--bottom right corner
-			end
-
-			do
-				meshPosition(x, y + h, 0)
-				meshColor(
-					color4R, color4G, color4B, color4A
-				)
-				meshTexCoord(0, 0, 0)
-				meshAdvanceVertex()
-
-				meshPosition(x, y + halfH, 0)
-				meshColor(
-					(color1R + color4R) * 0.5,
-					(color1G + color4G) * 0.5,
-					(color1B + color4B) * 0.5,
-					(color1A + color4A) * 0.5
-				)
-				meshTexCoord(0, 0, radiusH)
-				meshAdvanceVertex()
-
-				meshPosition(x + halfW, y + halfH, 0)
-				meshColor(
-					(color1R + color2R + color3R + color4R) * 0.25,
-					(color1G + color2G + color3G + color4G) * 0.25,
-					(color1B + color2B + color3B + color4B) * 0.25,
-					(color1A + color2A + color3A + color4A) * 0.25
-				)
-				meshTexCoord(0, radiusW, radiusH)
-				meshAdvanceVertex()
-
-				meshPosition(x + halfW, y + h, 0)
-				meshColor(
-					(color3R + color4R) * 0.5,
-					(color3G + color4G) * 0.5,
-					(color3B + color4B) * 0.5,
-					(color3A + color4A) * 0.5
-				)
-				meshTexCoord(0, radiusW, 0)
-				meshAdvanceVertex()
-				--botom left corner
-			end
+			meshPosition(x, y, 0)
+			meshColor(
+				color1R, color1G, color1B, color1A
+			)
+			meshTexCoord(0, 0, 0)
+			meshAdvanceVertex()
 		meshEnd()
 
 		return iMesh
