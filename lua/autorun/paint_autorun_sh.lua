@@ -13,6 +13,9 @@ load('paint/rounded_boxes_cl.lua')
 load('paint/outlines_cl.lua')
 load('paint/blur_cl.lua')
 load('paint/circles_cl.lua')
+load('paint/api_cl.lua') -- Doesn't kinda exist at the moment
+--api_cl.lua is intended to be used to create wrappers for surface/draw libs via surface.GetPaintState
+--Also, a new refactored api for functions would be here
 
 -- Load Examples
 load('paint/examples/examples_cl.lua')
@@ -32,7 +35,7 @@ load('paint/examples/controls/main_cl.lua')
 
 --#endregion Load Examples
 
-local VERSION = 1.10
+local VERSION = 1.11
 
 local function coloredMsgC(text)
 	local prevRandom

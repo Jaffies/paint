@@ -175,8 +175,8 @@ do
 	---@param w number x xradius # Width/X radius of circle
 	---@param h number y radius # Height/Y radius of circle
 	---@param vertexCount integer Vertex count that circle will have
-	---@param startAngle number Starting angle of sliced circle. Default is 0. MUST BE LOWER THAN END ANGLE
-	---@param endAngle  number Ending angle of sliced circle. Default is 360. MUST BE HIGHER THAN START ANGLE
+	---@param startAngle number? Starting angle of sliced circle. Default is 0. MUST BE LOWER THAN END ANGLE
+	---@param endAngle  number? Ending angle of sliced circle. Default is 360. MUST BE HIGHER THAN START ANGLE
 	---@param colors Color | {[1]: Color, [2]: Color} Color of circle. Can be a Color, or table with 2 colors inside.
 	---@param curviness number? Curviness ratio of circle. Think of circle defined as a formula like ``x^2+y^2=1``. But replace 2 with curviness.
 	---For squircle like in IOS, curviness is 4, resulting in ``x^4+y^4=1``

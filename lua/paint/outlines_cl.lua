@@ -251,7 +251,7 @@ do
 		popModelMatrix()
 	end
 
-	timer.Create('paint.outlinesGarbageCollector', 60, 0, function()
+	timer.Create('paint.outlinesGarbageCollector', 15, 0, function()
 		for k, v in pairs(cachedOutlinedMeshes) do
 			v:Destroy()
 			cachedOutlinedMeshes[k] = nil

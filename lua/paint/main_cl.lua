@@ -32,6 +32,7 @@
 ---@field batch paint.batch Unfinished module of batching. Provides a way to create IMeshes 
 ---@field examples paint.examples example library made for help people understand how paint library actually works. Can be opened via ``lua_run examples.showHelp()``
 ---@field blur paint.blur blur library, provides a nice way to retrieve a cheap blur textures/materials
+---@field api paint.api 
 ---@field circles paint.circles Circles! killer.
 local paint = {}
 
@@ -130,6 +131,8 @@ do
 	local setVector = paintColoredMaterial.SetVector
 	local setUnpacked = vector.SetUnpacked
 
+	local currentR, currentG, currentB, currentA = 255, 255, 255, 255
+
 	---This function provides you a material with solid color, allowing you to replicate ``render.SetColorModulation``/``surface.SetDrawColor``
 	---
 	---Meant to be used to have paint's shapes have animated colors without rebuilding mesh every time color changes 
@@ -147,9 +150,14 @@ do
 	---@param color Color color that material will have
 	---@return IMaterial coloredMaterial
 	function paint.getColoredMaterial(color)
-		setUnpacked(vector, color.r, color.g, color.b)
-		setVector(paintColoredMaterial, '$color', vector)
-		recompute(paintColoredMaterial)
+		local r, g, b, a = color.r, color.g, color.b, color.a
+
+		if currentR ~= r or currentG ~= g or currentB ~= b or currentA ~= a then
+			currentR, currentG, currentB, currentA = r, g, b, a
+			setUnpacked(vector, r / 255, g / 255, b / 255)
+			setVector(paintColoredMaterial, '$color', vector)
+			recompute(paintColoredMaterial)
+		end
 
 		return paintColoredMaterial
 	end
