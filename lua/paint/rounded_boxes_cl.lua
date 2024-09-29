@@ -642,8 +642,12 @@ do
 	---@param w number width
 	---@param h number height
 	---@param colors {[1]: Color, [2]: Color, [3]: Color, [4]: Color}
+	---@param leftTop boolean?
+	---@param rightTop boolean?
+	---@param rightBottom boolean?
+	---@param leftBottom boolean?
 	---@return IMesh
-	function roundedBoxes.generateSimpleRoundedBox(radius, x, y, w, h, colors)
+	function roundedBoxes.generateSimpleRoundedBox(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom)
 		local iMesh = meshConstructor()
 
 		local color1, color2, color3, color4 = colors[1], colors[2], colors[3], colors[4]
@@ -673,7 +677,7 @@ do
 			meshColor(
 				color1R, color1G, color1B, color1A
 			)
-			meshTexCoord(0, 0, 0)
+			meshTexCoord(0, leftTop and 0 or radiusW, leftTop and 0 or radiusH)
 			meshAdvanceVertex()
 
 			meshPosition(x + halfW, y, 0)
@@ -688,9 +692,9 @@ do
 
 			meshPosition(x + w, y, 0)
 			meshColor(
-				color1R, color1G, color1B, color1A
+				color2R, color2G, color2B, color2A
 			)
-			meshTexCoord(0, 0, 0)
+			meshTexCoord(0, rightTop and 0 or radiusW, rightTop and 0 or radiusH)
 			meshAdvanceVertex()
 
 			meshPosition(x + w, y + halfH, 0)
@@ -707,7 +711,7 @@ do
 			meshColor(
 				color3R, color3G, color3B, color3A
 			)
-			meshTexCoord(0, 0, 0)
+			meshTexCoord(0, rightBottom and 0 or radiusW, rightBottom and 0 or radiusH)
 			meshAdvanceVertex()
 
 			meshPosition(x + halfW, y + w, 0)
@@ -722,9 +726,9 @@ do
 
 			meshPosition(x, y + w, 0)
 			meshColor(
-				color3R, color3G, color3B, color3A
+				color4R, color4G, color4B, color4A
 			)
-			meshTexCoord(0, 0, 0)
+			meshTexCoord(0, leftBottom and 0 or radiusW, leftBottom and 0 or radiusH)
 			meshAdvanceVertex()
 
 			meshPosition(x, y + halfW, 0)
@@ -741,7 +745,7 @@ do
 			meshColor(
 				color1R, color1G, color1B, color1A
 			)
-			meshTexCoord(0, 0, 0)
+			meshTexCoord(0, leftTop and 0 or radiusW, leftTop and 0 or radiusH)
 			meshAdvanceVertex()
 		meshEnd()
 
@@ -755,7 +759,7 @@ do
 		if MENU_DLL then
 			return material
 		end
-		local rt = GetRenderTargetEx(name .. '_clamped', size, size, 1, 2, 270, 0, 12)
+		local rt = GetRenderTargetEx(name .. '_clamped', size, size, 1, 2, 270, 0, 6)
 
 		render.PushRenderTarget(rt)
 			render.Clear(255, 255, 255, 0, true, true)
@@ -802,13 +806,15 @@ do
 	---@param color2 Color
 	---@param color3 Color
 	---@param color4 Color
+	---@param corners integer
 	---@return string
-	local function getId(radius, w, h, color1, color2, color3, color4)
-		return format('%f;%f;%f;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x', radius, w, h,
+	local function getId(radius, w, h, color1, color2, color3, color4, corners)
+		return format('%f;%f;%f;%x%x%x%x;%x%x%x%x;%x%x%x%x;%x%x%x%x;%u', radius, w, h,
 			color1.r, color1.g, color1.b, color1.a,
 			color2.r, color2.g, color2.b, color2.a,
 			color3.r, color3.g, color3.b, color3.a,
-			color4.r, color4.g, color4.b, color4.a
+			color4.r, color4.g, color4.b, color4.a,
+			corners
 		)
 	end
 
@@ -818,7 +824,11 @@ do
 	---@param w integer width
 	---@param h integer height
 	---@param colors Color | {[1] : Color, [2]: Color, [3]: Color, [4]: Color}
-	function roundedBoxes.drawSimpleRoundedBox(radius, x, y, w, h, colors)
+	---@param leftTop boolean?
+	---@param rightTop boolean?
+	---@param rightBottom boolean?
+	---@param leftBottom boolean?
+	function roundedBoxes.drawSimpleRoundedBoxEx(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom)
 		if colors[4] == nil then
 			colors[1] = colors
 			colors[2] = colors
@@ -826,12 +836,12 @@ do
 			colors[4] = colors
 		end
 
-		local id = getId(radius, w, h, colors[1], colors[2], colors[3], colors[4])
+		local id = getId(radius, w, h, colors[1], colors[2], colors[3], colors[4], (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0) )
 
 		local meshObj = cachedSimpleRoundedBoxMeshes[id]
 
 		if meshObj == nil then
-			meshObj = generateSimpleRoundedBox(radius, 0, 0, w, h, colors)
+			meshObj = generateSimpleRoundedBox(radius, 0, 0, w, h, colors, leftTop, rightTop, rightBottom, leftBottom)
 			cachedSimpleRoundedBoxMeshes[id] = meshObj
 		end
 
@@ -848,6 +858,12 @@ do
 			setMaterial(material)
 			meshDraw(meshObj)
 		popModelMatrix()
+	end
+
+	local drawSimpleRoundedBoxEx = roundedBoxes.drawSimpleRoundedBoxEx
+
+	function roundedBoxes.drawSimpleRoundedBox(radius, x, y, w, h, colors)
+		drawSimpleRoundedBoxEx(radius, x, y ,w, h, colors, true, true, true, true)
 	end
 
 	timer.Create('paint.simpleRoundedBoxesGarbageCollector', 60, 0, function()

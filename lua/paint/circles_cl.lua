@@ -392,8 +392,8 @@ do
 	---@param colors Color | {[1]: Color, [2]: Color} Color of circledOutline. Can be a Color, or table with 2 colors inside.
 	---@param curviness number? Curviness ratio of circledOutline. Think of circledOutline defined as a formula like ``outlineRatio^2<=x^2+y^2<=1``. But replace 2 with curviness.
 	---For squircle like in IOS, curviness is 4, resulting in ``outlineRatio^4<=x^4+y^4<=1``
-	---@param startU number
-	---@param endU number
+	---@param startU? number
+	---@param endU? number
 	---@param outlineWidth number
 	function circles.drawOutline(x, y, w, h, colors, outlineWidth, vertexCount, startAngle, endAngle, material, startU, endU, curviness)
 		if colors[2] == nil then

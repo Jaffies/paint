@@ -5,6 +5,34 @@ local function load(path)
 	end
 end
 
+if CLIENT and not surface.GetPanelPaintState then
+	---@class paint.PanelPaintState
+	---@field translate_x integer
+	---@field translate_y integer
+	---@field scissor_enabled boolean
+	---@field scissor_left integer
+	---@field scissor_top integer
+	---@field scissor_right integer
+	---@field scissor_bottom integer
+	local panelState = {
+		translate_x = 0,
+		translate_y = 0,
+		scissor_enabled = false,
+		scissor_left = 0,
+		scissor_bottom = 0,
+		scissor_right = 0,
+		scissor_top = 0
+	}
+
+	---@return paint.PanelPaintState
+	---@diagnostic disable-next-line: duplicate-set-field
+	function surface.GetPanelPaintState()
+		return panelState
+	end
+
+	MsgC(Color(255, 20, 20), '[Warning] ', color_white, 'Paint library made a stub for surface.GetPanelPaintState.\n', Color(100, 255, 100), 'It will likely break stuff. Sorry for that.\nWill be removed when surface.GetPanelPaintState will be implemented in gmod\n')
+end
+
 load('paint/main_cl.lua')
 load('paint/batch_cl.lua')
 load('paint/lines_cl.lua')
@@ -13,9 +41,9 @@ load('paint/rounded_boxes_cl.lua')
 load('paint/outlines_cl.lua')
 load('paint/blur_cl.lua')
 load('paint/circles_cl.lua')
-load('paint/api_cl.lua') -- Doesn't kinda exist at the moment
---api_cl.lua is intended to be used to create wrappers for surface/draw libs via surface.GetPaintState
---Also, a new refactored api for functions would be here
+load('paint/api_cl.lua')
+load('paint/svg_cl.lua')
+load('paint/masks_cl.lua')
 
 -- Load Examples
 load('paint/examples/examples_cl.lua')

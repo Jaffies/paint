@@ -34,6 +34,7 @@
 ---@field blur paint.blur blur library, provides a nice way to retrieve a cheap blur textures/materials
 ---@field api paint.api 
 ---@field circles paint.circles Circles! killer.
+---@field svg paint.svg
 local paint = {}
 
 ---@alias gradients Color | {[1] : Color, [2]: Color, [3]: Color, [4]: Color, [5]: Color?}
