@@ -545,7 +545,7 @@ do
 		_G.CIRCLE_OUTLINED = CIRCLE_OUTLINED
 		_G.CIRCLE_BLURRED = CIRCLE_BLURRED
 
-		RegisterMetaTable('Circles', circle)
+		RegisterMetaTable('Circles', circles)
 	end
 end
 
