@@ -17,3 +17,6 @@ The best painting library, that replaces surface library!
 ![8](https://github.com/user-attachments/assets/adbb8ed7-10a3-40d6-bd4f-86cc717260b4)
 
 A set of examples can be seen in-game by running ``lua_run_cl paint.examples.showHelp()`` in the console.
+
+Updates from me are currently in this [TG channel](https://t.me/+8WHlsebY9Q5lYzUy)
+
