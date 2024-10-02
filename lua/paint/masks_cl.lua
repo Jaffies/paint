@@ -1,3 +1,4 @@
+---@diagnostic disable: deprecated
 ---# Simple masking library
 ---
 ---Provides the way to make masks. Really simple
@@ -5,7 +6,7 @@
 ---Coded in couple of minutes.
 ---Bug tested in couple of days
 ---
----A simplier version of melonmasks which uses ``render.OverrideAlphaWriteEnable`` what i used for masking stuff
+---A simplier version of melonmasks which uses ``render.OverrideAlphaWriteEnable``
 ---
 ---## Example
 ---```lua
@@ -35,11 +36,29 @@ do
 	  ["$translucent"] = 1,
 	})
 
+	---@type IMesh?
+	local rectMesh
+
+	local function createRectMesh()
+		if rectMesh then
+			rectMesh:Destroy()
+		end
+
+		rectMesh = Mesh(material)
+
+		paint.rects.generateRectMesh(rectMesh, 0, 0, w, h, color_white, 0, 0, 1, 1)
+	end
+
+	createRectMesh()
+	---@cast rectMesh -?
+
 	hook.Add('OnScreenSizeChanged', 'simpleMask', function(_, _, newW, newH)
 		w, h = newW, newH
 
 		rt:Download() -- I vaguely remember it being used to reset rt params. Might not work btw..
 		rt = GetRenderTargetEx('paint.masksRT', w, h, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_NONE, 1 + 256, 0, IMAGE_FORMAT_BGRA8888)
+
+		createRectMesh()
 	end)
 
 	local renderPushRenderTarget = render.PushRenderTarget
@@ -58,17 +77,11 @@ do
 	end
 	local camEnd2D = cam.End2D
 
-	local surfaceSetMaterial = surface.SetMaterial
-	local surfaceSetDrawColor = surface.SetDrawColor
-	local surfaceGetDrawColor = surface.GetDrawColor
-	local surfaceDrawTexturedRect = surface.DrawTexturedRect
-	--- No surface.GetMaterial, so material won't be restored
-
 	---@type fun()
 	masks.source = function()
 		renderPushRenderTarget(rt)
 		renderOverrideAlphaWriteEnable(true, true)
-		renderClear(0, 0, 0, 0, true, true)
+		renderClear(0, 0, 0, 0)
 
 		camStart2D()
 	end
@@ -80,17 +93,16 @@ do
 		camStart2D()
 	end
 
+	local setMaterial = render.SetMaterial
+	local drawMesh = rectMesh.Draw
+
 	---@type fun()
 	masks.stop = function()
 		camEnd2D()
 		renderPopRenderTarget()
 
-		local oldColor = surfaceGetDrawColor()
-
-		surfaceSetMaterial(material)
-		surfaceSetDrawColor(255, 255, 255)
-		surfaceDrawTexturedRect(0, 0, w, h)
-		surfaceSetDrawColor(oldColor)
+		setMaterial(material)
+		drawMesh(rectMesh)
 	end
 end
 

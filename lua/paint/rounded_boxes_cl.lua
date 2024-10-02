@@ -136,13 +136,13 @@ do
 	function roundedBoxes.getMeshVertexCount(radius, rightTop, rightBottom, leftBottom, leftTop)
 		if radius > 3 then
 			local vertsPerEdge = clamp(radius / 2, 3, 24)
-			return 6
+			return 10
 				+ (rightTop and vertsPerEdge or 0)
 				+ (rightBottom and vertsPerEdge or 0)
 				+ (leftBottom and vertsPerEdge or 0)
 				+ (leftTop and vertsPerEdge or 0)
 		else
-			return 6
+			return 10
 				+ (rightTop and 1 or 0)
 				+ (rightBottom and 1 or 0)
 				+ (leftBottom and 1 or 0)
@@ -186,100 +186,108 @@ do
 			meshBegin(mesh, PRIMITIVE_POLYGON, getMeshVertexCount(radius, rightTop, rightBottom, leftBottom, leftTop))
 		end
 
-			local fifthColor = colors[5]
-			if fifthColor == nil then
-				createVertex((x + endX) * 0.5, (y + endY) * 0.5, 0.5, 0.5, colors, u1, v1, u2, v2)
-			else
-				centreTab[1], centreTab[2], centreTab[3], centreTab[4] = fifthColor, fifthColor, fifthColor, fifthColor
-				createVertex((x + endX) * 0.5, (y + endY) * 0.5, 0.5, 0.5, centreTab, u1, v1, u2, v2)
-			end
+		local fifthColor = colors[5]
+		if fifthColor == nil then
+			createVertex((x + endX) * 0.5, (y + endY) * 0.5, 0.5, 0.5, colors, u1, v1, u2, v2)
+		else
+			centreTab[1], centreTab[2], centreTab[3], centreTab[4] = fifthColor, fifthColor, fifthColor, fifthColor
+			createVertex((x + endX) * 0.5, (y + endY) * 0.5, 0.5, 0.5, centreTab, u1, v1, u2, v2)
+		end
 
-			createVertex(x + (leftTop and radius or 0), y, (leftTop and radius or 0) / w, 0, colors, u1, v1, u2, v2)
+		createVertex(x + (leftTop and radius or 0), y, (leftTop and radius or 0) / w, 0, colors, u1, v1, u2, v2)
 
-			createVertex(endX - (rightTop and radius or 0), y, 1 - (rightTop and radius or 0) / w, 0, colors, u1, v1, u2, v2)
-			-- 3 vertices
+		createVertex( (x + endX) * 0.5, y, 0.5, 0, colors, u1, v1, u2, v2)
 
-			if rightTop then
-				if isRadiusBig then
-					local deltaX = endX - radius
-					local deltaY = y + radius
+		createVertex(endX - (rightTop and radius or 0), y, 1 - (rightTop and radius or 0) / w, 0, colors, u1, v1, u2, v2)
+		-- 3 vertices
 
-					for i = 1, vertsPerEdge - 1 do
-						local angle = halfPi * (i / vertsPerEdge)
+		if rightTop then
+			if isRadiusBig then
+				local deltaX = endX - radius
+				local deltaY = y + radius
 
-						local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
+				for i = 1, vertsPerEdge - 1 do
+					local angle = halfPi * (i / vertsPerEdge)
 
-						local newX, newY = deltaX + sinn * radius, deltaY - coss * radius
+					local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
 
-						createVertex(newX, newY, 1 - (1-sinn) * radius / w, ( 1 - coss) * radius / h, colors, u1, v1, u2, v2 )
-					end
+					local newX, newY = deltaX + sinn * radius, deltaY - coss * radius
+
+					createVertex(newX, newY, 1 - (1-sinn) * radius / w, ( 1 - coss) * radius / h, colors, u1, v1, u2, v2 )
 				end
-
-				createVertex(endX, y + radius, 1, radius / h, colors, u1, v1, u2, v2)
 			end
 
-			createVertex(endX, endY - (rightBottom and radius or 0), 1, 1 - (rightBottom and radius or 0) / h, colors, u1, v1, u2, v2)
+			createVertex(endX, y + radius, 1, radius / h, colors, u1, v1, u2, v2)
+		end
 
-			if rightBottom then
-				if isRadiusBig then
-					local deltaX = endX - radius
-					local deltaY = endY - radius
+		createVertex(endX, (y + endY) * 0.5, 1, 0.5, colors, u1, v1, u2, v2)
 
-					for i = 1, vertsPerEdge - 1 do
-						local angle = halfPi * (i / vertsPerEdge)
+		createVertex(endX, endY - (rightBottom and radius or 0), 1, 1 - (rightBottom and radius or 0) / h, colors, u1, v1, u2, v2)
 
-						local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
+		if rightBottom then
+			if isRadiusBig then
+				local deltaX = endX - radius
+				local deltaY = endY - radius
 
-						local newX, newY = deltaX + coss * radius, deltaY + sinn * radius
+				for i = 1, vertsPerEdge - 1 do
+					local angle = halfPi * (i / vertsPerEdge)
 
-						createVertex(newX, newY, 1 - ((1 - coss) * radius) / w, 1 - ( (1 - sinn) * radius ) / h, colors, u1, v1, u2, v2)
-					end
+					local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
+
+					local newX, newY = deltaX + coss * radius, deltaY + sinn * radius
+
+					createVertex(newX, newY, 1 - ((1 - coss) * radius) / w, 1 - ( (1 - sinn) * radius ) / h, colors, u1, v1, u2, v2)
 				end
-
-				createVertex(endX - radius, endY, 1 - radius / w, 1, colors, u1, v1, u2, v2)
 			end
 
-			createVertex(x + (leftBottom and radius or 0), endY, (leftBottom and radius or 0) / w, 1, colors, u1, v1, u2, v2)
+			createVertex(endX - radius, endY, 1 - radius / w, 1, colors, u1, v1, u2, v2)
+		end
 
-			if leftBottom then
-				if isRadiusBig then
-					local deltaX = x + radius
-					local deltaY = endY - radius
+		createVertex( (x + endX) * 0.5, endY, 0.5, 1, colors, u1, v1, u2, v2 )
 
-					for i = 1, vertsPerEdge - 1 do
-						local angle = halfPi * (i / vertsPerEdge)
+		createVertex(x + (leftBottom and radius or 0), endY, (leftBottom and radius or 0) / w, 1, colors, u1, v1, u2, v2)
 
-						local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
+		if leftBottom then
+			if isRadiusBig then
+				local deltaX = x + radius
+				local deltaY = endY - radius
 
-						local newX, newY = deltaX - sinn * radius, deltaY + coss * radius
+				for i = 1, vertsPerEdge - 1 do
+					local angle = halfPi * (i / vertsPerEdge)
 
-						createVertex(newX, newY, (1 - sinn) * radius / w, 1 - (1 - coss) * radius / h, colors, u1, v1, u2, v2)
-					end
+					local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
+
+					local newX, newY = deltaX - sinn * radius, deltaY + coss * radius
+
+					createVertex(newX, newY, (1 - sinn) * radius / w, 1 - (1 - coss) * radius / h, colors, u1, v1, u2, v2)
 				end
-
-				createVertex(x, endY - radius, 0, 1 - radius / h, colors, u1, v1, u2, v2)
 			end
 
-			createVertex(x, y + (leftTop and radius or 0), 0, (leftTop and radius or 0) / h, colors, u1, v1, u2, v2)
+			createVertex(x, endY - radius, 0, 1 - radius / h, colors, u1, v1, u2, v2)
+		end
 
-			if leftTop then
-				if isRadiusBig then
-					local deltaX = x + radius
-					local deltaY = y + radius
+		createVertex(x, (y + endY) * 0.5, 0, 0.5, colors, u1, v1, u2, v2 )
 
-					for i = 1, vertsPerEdge - 1 do
-						local angle = halfPi * (i / vertsPerEdge)
+		createVertex(x, y + (leftTop and radius or 0), 0, (leftTop and radius or 0) / h, colors, u1, v1, u2, v2)
 
-						local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
+		if leftTop then
+			if isRadiusBig then
+				local deltaX = x + radius
+				local deltaY = y + radius
 
-						local newX, newY = deltaX - coss * radius, deltaY - sinn * radius
+				for i = 1, vertsPerEdge - 1 do
+					local angle = halfPi * (i / vertsPerEdge)
 
-						createVertex(newX, newY, (1 - coss) * radius / w, (1 - sinn) * radius / h, colors, u1, v1, u2, v2)
-					end
+					local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
+
+					local newX, newY = deltaX - coss * radius, deltaY - sinn * radius
+
+					createVertex(newX, newY, (1 - coss) * radius / w, (1 - sinn) * radius / h, colors, u1, v1, u2, v2)
 				end
-
-				createVertex(x + radius, y, radius / w, 0, colors, u1, v1, u2, v2)
 			end
+
+			createVertex(x + radius, y, radius / w, 0, colors, u1, v1, u2, v2)
+		end
 
 		if mesh then
 			meshEnd()
@@ -752,38 +760,44 @@ do
 		return iMesh
 	end
 
-	local format = string.format
-
-	local function getClampedTexture(name, size)
-		local material = Material(name)
-		if MENU_DLL then
-			return material
+	local function getClampedTexture(name)
+		if file.Exists('paint/' .. name .. '.vmt', 'DATA') then
+			return Material('../data/paint/' .. name)
 		end
-		local rt = GetRenderTargetEx(name .. '_clamped', size, size, 1, 2, 270, 0, 6)
 
-		render.PushRenderTarget(rt)
-			render.Clear(255, 255, 255, 0, true, true)
-			cam.Start2D()
-				surface.SetMaterial(material)
-				surface.SetDrawColor(255, 255, 255)
-				surface.DrawTexturedRect(0, 0, size, size)
-			cam.End2D()
-		render.PopRenderTarget()
+		file.CreateDir('paint/' .. string.GetPathFromFilename(name))
 
-		return CreateMaterial(name .. '_clamped', 'UnlitGeneric', {
-			['$basetexture'] = name .. '_clamped',
-			['$translucent'] = '1',
-			['$model'] = '1',
-			['$vertexalpha'] = '1',
-			['$vertexcolor'] = '1'
-		})
+		local vtfData = file.Open('materials/' .. name .. '.vtf', 'rb', 'MOD')
+		local newVtf = file.Open('paint/' .. name .. '.vtf', 'wb', 'DATA')
+
+		newVtf:Write(vtfData:Read(20))
+		newVtf:WriteULong(bit.bor(vtfData:ReadULong(), 4, 8))
+		newVtf:Write(vtfData:Read(vtfData:Size() - 24))
+		newVtf:Flush()
+
+		vtfData:Close()
+		newVtf:Close()
+
+		file.Write('paint/' .. name .. '.vmt',
+			string.format([[
+				"UnlitGeneric"
+				{
+					"$basetexture" "../data/paint/%s"
+					"$ignorez" "1"
+					"$vertexcolor" "1"
+					"$vertexalpha" "1"
+					"$nolod" "1"
+				}]], name)
+		)
+
+		return Material('../data/paint/' .. name)
 	end
 
-	local texCorner8 = getClampedTexture( "gui/corner8", 8 )
-	local texCorner16 = getClampedTexture( "gui/corner16", 16 )
-	local texCorner32 = getClampedTexture( "gui/corner32", 32 )
-	local texCorner64 = getClampedTexture( "gui/corner64", 64 )
-	local texCorner512 = getClampedTexture( "gui/corner512", 512 )
+	local texCorner8 = getClampedTexture( 'gui/corner8')
+	local texCorner16 = getClampedTexture( 'gui/corner16')
+	local texCorner32 = getClampedTexture( 'gui/corner32')
+	local texCorner64 = getClampedTexture( 'gui/corner64')
+	local texCorner512 = getClampedTexture( 'gui/corner512')
 
 	local generateSimpleRoundedBox = roundedBoxes.generateSimpleRoundedBox
 
@@ -798,6 +812,7 @@ do
 
 	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
 	local setMaterial = render.SetMaterial
+	local format = string.format
 
 	---@param radius number
 	---@param w number
