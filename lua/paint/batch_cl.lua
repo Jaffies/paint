@@ -75,6 +75,7 @@ do
 		local iMesh = meshConstructor()
 
 		meshBegin(iMesh, PRIMITIVE_TRIANGLES, tab[0] * 0.3)
+		local res, reason = pcall(function()
 			for i = 1, tab[0], 10 do
 				local x, y, z, color, x1, y1, color1, x2, y2, color2 = getVariables(tab, i)
 
@@ -90,7 +91,12 @@ do
 				meshColor(color2.r, color2.g, color2.b, color2.a)
 				meshAdvanceVertex()
 			end
+		end)
 		meshEnd()
+
+		if not res then
+			print('[paint] batching error', reason)
+		end
 
 		batch.reset()
 		batch.batching = false

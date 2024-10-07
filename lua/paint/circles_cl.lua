@@ -174,7 +174,7 @@ do
 	---@param y number # CENTER Y coordinate of circle
 	---@param w number x xradius # Width/X radius of circle
 	---@param h number y radius # Height/Y radius of circle
-	---@param vertexCount integer Vertex count that circle will have
+	---@param vertexCount integer? Vertex count that circle will have
 	---@param startAngle number? Starting angle of sliced circle. Default is 0. MUST BE LOWER THAN END ANGLE
 	---@param endAngle  number? Ending angle of sliced circle. Default is 360. MUST BE HIGHER THAN START ANGLE
 	---@param colors Color | {[1]: Color, [2]: Color} Color of circle. Can be a Color, or table with 2 colors inside.
@@ -257,7 +257,6 @@ do
 	local PRIMITIVE_TRIANGLE_STRIP = MATERIAL_TRIANGLE_STRIP
 	local sin, cos = math.sin, math.cos
 
-
 	---Generates single circle mesh, unbatched
 	---@param vertexCount integer
 	---@param startAngle number
@@ -299,6 +298,70 @@ do
 		meshEnd()
 
 		return meshObj
+	end
+end
+
+do
+	local batch = paint.batch
+	local incrementZ = paint.incrementZ
+
+	local sin, cos = math.sin, math.cos
+
+	---@param vertexCount integer
+	---@param startAngle number
+	---@param endAngle number
+	---@param colors {[1]: Color, [2]: Color}
+	---@param x number
+	---@param y number
+	---@param radiusW number
+	---@param radiusH number
+	---@param outlineWidth number
+	---@param curviness number
+	function circles.generateOutlineMeshBatched(vertexCount, startAngle, endAngle, colors, x, y, radiusW, radiusH, outlineWidth, curviness)
+		local startColor, endColor = colors[1], colors[2]
+
+		local batchTable = batch.batchTable
+		local len = batchTable[0]
+
+		local z = incrementZ()
+
+		local deltaAngle = endAngle - startAngle
+
+		for i = 0, vertexCount - 1 do
+			local indexI = i * 20
+
+			local angle = startAngle + deltaAngle * i / vertexCount
+
+			batchTable[len + 1 + indexI] = x + fpow(cos(angle), curviness) * radiusW
+			batchTable[len + 2 + indexI] = y + fpow(sin(angle), curviness) * radiusH
+			batchTable[len + 3 + indexI] = z
+			batchTable[len + 4 + indexI] = startColor
+
+			batchTable[len + 5 + indexI] = x + fpow(cos(angle), curviness) * (radiusW + outlineWidth)
+			batchTable[len + 6 + indexI] = y + fpow(sin(angle), curviness) * (radiusH + outlineWidth)
+			batchTable[len + 7 + indexI] = endColor
+
+			local angle2 = startAngle + deltaAngle * (i + 1) / vertexCount
+
+			batchTable[len + 8 + indexI] = x + fpow(cos(angle2), curviness) * radiusW
+			batchTable[len + 9 + indexI] = y + fpow(sin(angle2), curviness) * radiusH
+			batchTable[len + 10 + indexI] = startColor
+
+			batchTable[len + 11 + indexI] = x + fpow(cos(angle2), curviness) * radiusW
+			batchTable[len + 12 + indexI] = y + fpow(sin(angle2), curviness) * radiusH
+			batchTable[len + 13 + indexI] = z
+			batchTable[len + 14 + indexI] = startColor
+
+			batchTable[len + 15 + indexI] = x + fpow(cos(angle), curviness) * (radiusW + outlineWidth)
+			batchTable[len + 16 + indexI] = y + fpow(sin(angle), curviness) * (radiusH + outlineWidth)
+			batchTable[len + 17 + indexI] = endColor
+
+			batchTable[len + 18 + indexI] = x + fpow(cos(angle2), curviness) * (radiusW + outlineWidth)
+			batchTable[len + 19 + indexI] = y + fpow(sin(angle2), curviness) * (radiusH + outlineWidth)
+			batchTable[len + 20 + indexI] = endColor
+		end
+
+		batchTable[0] = len + 20 * vertexCount
 	end
 end
 
@@ -381,20 +444,24 @@ do
 
 	local drawOutlineSingle = circles.drawOutlineSingle
 	local max = math.max
+
+	local batch = paint.batch
+
+	local generateOutlineMeshBatched = circles.generateOutlineMeshBatched
 	---Draws circled outline. UNBATCHED ONLY.
 	---@param x number # CENTER X coordinate of circled outline
 	---@param y number # CENTER Y coordinate of circled outline
 	---@param w number x xradius # Width/X radius of circled outline
 	---@param h number y radius # Height/Y radius of circled outline
-	---@param vertexCount integer Vertex count that circled outline will have
-	---@param startAngle number Starting angle of sliced circled outline. Default is 0. MUST BE LOWER THAN END ANGLE
-	---@param endAngle  number Ending angle of sliced circled outline. Default is 360. MUST BE HIGHER THAN START ANGLE
 	---@param colors Color | {[1]: Color, [2]: Color} Color of circledOutline. Can be a Color, or table with 2 colors inside.
-	---@param curviness number? Curviness ratio of circledOutline. Think of circledOutline defined as a formula like ``outlineRatio^2<=x^2+y^2<=1``. But replace 2 with curviness.
-	---For squircle like in IOS, curviness is 4, resulting in ``outlineRatio^4<=x^4+y^4<=1``
+	---@param outlineWidth number
+	---@param vertexCount integer? Vertex count that circled outline will have
+	---@param startAngle number? Starting angle of sliced circled outline. Default is 0. MUST BE LOWER THAN END ANGLE
+	---@param endAngle  number? Ending angle of sliced circled outline. Default is 360. MUST BE HIGHER THAN START ANGLE
 	---@param startU? number
 	---@param endU? number
-	---@param outlineWidth number
+	---@param curviness number? Curviness ratio of circledOutline. Think of circledOutline defined as a formula like ``outlineRatio^2<=x^2+y^2<=1``. But replace 2 with curviness.
+	---For squircle like in IOS, curviness is 4, resulting in ``outlineRatio^4<=x^4+y^4<=1``
 	function circles.drawOutline(x, y, w, h, colors, outlineWidth, vertexCount, startAngle, endAngle, material, startU, endU, curviness)
 		if colors[2] == nil then
 			colors[1] = colors
@@ -422,8 +489,15 @@ do
 		startAngle = startAngle * angleConverter
 		endAngle = endAngle * angleConverter
 
-		outlineWidth = 1 / (1 + max(w, h) / outlineWidth)
-		drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth, curviness)
+
+		if batch.batching then
+			generateOutlineMeshBatched(vertexCount, startAngle, endAngle, colors, x, y, w, h, outlineWidth, curviness)
+		else
+			outlineWidth = 1 / (1 + max(w, h) / outlineWidth)
+			---@diagnostic disable-next-line: param-type-mismatch
+			drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth, curviness)
+		end
+
 	end
 end
 

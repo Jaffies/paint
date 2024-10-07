@@ -63,7 +63,7 @@ load('paint/examples/controls/main_cl.lua')
 
 --#endregion Load Examples
 
-local VERSION = 1.11
+local VERSION = 1.12
 
 local function coloredMsgC(text)
 	local prevRandom

@@ -162,9 +162,6 @@ do
 
 		return paintColoredMaterial
 	end
-
-
-
 end
 
 do
@@ -185,6 +182,8 @@ do
 
 	local pushScissorRect = paint.pushScissorRect
 	local popScissorRect = paint.popScissorRect
+
+	local setScissorRect = render.SetScissorRect
 
 	---
 	---Unfortunately, the paint library cannot integrate seamlessly with VGUI and Derma in the way that the surface and draw libraries do.
@@ -233,6 +232,45 @@ do
 
 		-- paint.beginPanel -> paint.endPanel (like in Pascal language, or mesh.Begin -> mesh.End)
 		-- paint.startPanel -> paint.stopPanel (start/stop sound cool in pairs)
+	end
+
+	local getPanelPaintState = surface.GetPanelPaintState
+
+	---# Starts new VGUI context 
+	---A modern alternative to paint.startPanel without the need to pass a reference of panel
+	---and without the need to manually clip ``DScrollPanel``s.  
+	---## Example:  
+	---```lua
+	---function PANEL:Paint(w, h)
+	---	paint.startVGUI()
+	---		paint.roundedBoxes.roundedBox(32, 0, 0, w, h, color_white)
+	---		--Any other stuff here. Note that surface.* (or surface.* derived) functions will double it's positioning.
+	---		--This is all because of surface internal positioning + matrix translation.
+	---		--You will need to use only paint.* functions inside paint.start/endVGUI() block.
+	---	paint.endVGUI()
+	---end
+	---```
+	---@see paint.startPanel
+	function paint.startVGUI()
+		local state = getPanelPaintState()
+
+		setField(matrix, 1, 4, state.translate_x)
+		setField(matrix, 2, 4, state.translate_y)
+
+		pushModelMatrix(matrix, true)
+
+		if state.scissor_enabled then
+			setScissorRect(state.scissor_left, state.scissor_top, state.scissor_right, state.scissor_bottom, true)
+		end
+	end
+
+	---# Ends new VGUI context 
+	---A modern alternative to paint.startPanel without the need to pass a reference of panel
+	---and without the need to manually clip ``DScrollPanel``s.  
+	---@see paint.startPanel
+	function paint.endVGUI()
+		popModelMatrix()
+		setScissorRect(0, 0, 0, 0, false)
 	end
 
 	--- Simple helper function which makes bilinear interpolation

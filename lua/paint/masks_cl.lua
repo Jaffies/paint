@@ -46,7 +46,8 @@ do
 
 		rectMesh = Mesh(material)
 
-		paint.rects.generateRectMesh(rectMesh, 0, 0, w, h, color_white, 0, 0, 1, 1)
+		local color = Color(255, 255, 255)
+		paint.rects.generateRectMesh(rectMesh, 0, 0, w, h, {color, color, color, color}, 0, 0, 1, 1)
 	end
 
 	createRectMesh()
