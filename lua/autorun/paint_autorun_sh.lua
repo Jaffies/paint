@@ -44,6 +44,7 @@ load('paint/circles_cl.lua')
 load('paint/api_cl.lua')
 load('paint/svg_cl.lua')
 load('paint/masks_cl.lua')
+load('paint/downsampling_cl.lua')
 
 -- Load Examples
 load('paint/examples/examples_cl.lua')

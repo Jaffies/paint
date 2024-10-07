@@ -53,7 +53,7 @@ do
 	createRectMesh()
 	---@cast rectMesh -?
 
-	hook.Add('OnScreenSizeChanged', 'simpleMask', function(_, _, newW, newH)
+	hook.Add('OnScreenSizeChanged', 'paint.masks', function(_, _, newW, newH)
 		w, h = newW, newH
 
 		rt:Download() -- I vaguely remember it being used to reset rt params. Might not work btw..

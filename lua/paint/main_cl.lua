@@ -35,6 +35,7 @@
 ---@field api paint.api 
 ---@field circles paint.circles Circles! killer.
 ---@field svg paint.svg
+---@field downsampling paint.downsampling
 local paint = {}
 
 ---@alias gradients Color | {[1] : Color, [2]: Color, [3]: Color, [4]: Color, [5]: Color?}
