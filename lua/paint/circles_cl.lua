@@ -493,7 +493,7 @@ do
 		if batch.batching then
 			generateOutlineMeshBatched(vertexCount, startAngle, endAngle, colors, x, y, w, h, outlineWidth, curviness)
 		else
-			outlineWidth = 1 / (1 + max(w, h) / outlineWidth)
+			outlineWidth = outlineWidth / max(w, h)
 			---@diagnostic disable-next-line: param-type-mismatch
 			drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth, curviness)
 		end
