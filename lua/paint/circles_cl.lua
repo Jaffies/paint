@@ -49,7 +49,7 @@ do
 	---@param colors {[1]: Color, [2]: Color}
 	---@param curviness number
 	---@param rotation number
-	---@deprecated Internal variable, not meant to be used outside.
+	---@private Internal variable, not meant to be used outside.
 	---@return IMesh
 	function circles.generateSingleMesh(vertexCount, startAngle, endAngle, colors, rotation, curviness)
 		local meshObj = meshConstructor()
@@ -91,7 +91,7 @@ do
 	---@param endAngle number
 	---@param colors {[1]: Color, [2]: Color}
 	---@param curviness number
-	---@deprecated Internal variable, not meant to be used outside.
+	---@private Internal variable, not meant to be used outside.
 	function circles.generateMeshBatched(x, y, w, h, vertexCount, startAngle, endAngle, colors, curviness)
 		local startColor, endColor = colors[1], colors[2]
 
@@ -266,7 +266,7 @@ do
 	---@param endU number
 	---@param outlineWidth number # note, that this outlineWidth is between 0-1, cuz it's basically a percentage of radius
 	---@param curviness number
-	---@deprecated Internal variable, not meant to be used outside .
+	---@private Internal variable, not meant to be used outside .
 	---@return IMesh
 	function circles.generateOutlineMeshSingle(vertexCount, startAngle, endAngle, colors, startU, endU, outlineWidth, curviness)
 		local meshObj = meshConstructor()
@@ -405,7 +405,7 @@ do
 	---@param endU number
 	---@param curviness number
 	---@param outlineWidth number # note, that this outlineWidth is between 0-1, cuz it's basically a percentage of radius
-	---@deprecated Internal variable, not meant to be used outside.
+	---@private Internal variable, not meant to be used outside.
 	function circles.drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth, curviness)
 		local id = getId(colors[1], colors[2], vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
 

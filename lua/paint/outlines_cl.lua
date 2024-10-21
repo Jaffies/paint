@@ -147,7 +147,7 @@ do
 	---@param curviness number?
 	---@param inside boolean?
 	---@param cornernessArg number?
-	---@deprecated Internal variable, not meant to be used outside.
+	---@private Internal variable, not meant to be used outside.
 	function outlines.generateOutlineSingle(mesh, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b, curviness, inside, cornernessArg)
 		isInside = inside or false
 		outlineTop, outlineRight, outlineBottom, outlineLeft = t or 0, r or 0, b or 0, l or 0
@@ -224,7 +224,7 @@ do
 	---@param curviness number?
 	---@param inside boolean
 	---@param cornerness number? Number in which corner fraction (value between 0 and 1) will be powered to. Default is 1
-	---@deprecated Internal variable, not meant to be used outside.
+	---@private Internal variable, not meant to be used outside.
 	function outlines.drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside, cornerness)
 		curviness = curviness or 2
 		inside = inside or false
@@ -369,7 +369,7 @@ do
 	---@param r number
 	---@param b number
 	---@param curviness number?
-	---@deprecated Internal variable, not meant to be used outside.
+	---@private Internal variable, not meant to be used outside.
 	function outlines.drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, _, l, t, r, b, curviness)
 		outlineL, outlineT, outlineR, outlineB = l, t, r, b
 		first = true
@@ -479,7 +479,7 @@ do
 	---@param outlineR number
 	---@param outlineB number
 	---@return IMesh
-	---@deprecated Internal variable, not meant to be used outside.
+	---@private Internal variable, not meant to be used outside.
 	function outlines.generateBoxOutline(x, y, endX, endY, colors, outlineL, outlineT, outlineR, outlineB)
 		local meshObj = meshConstructor()
 

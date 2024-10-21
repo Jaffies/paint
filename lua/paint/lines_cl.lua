@@ -55,7 +55,7 @@ do
 	---@param endY number
 	---@param startColor Color
 	---@param endColor? Color
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	function lines.drawSingleLine(startX, startY, endX, endY, startColor, endColor)
 		if endColor == nil then
 			endColor = startColor
@@ -102,7 +102,7 @@ do
 	}
 
 	---Draws batched lines
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	---@param array table # array with [startX:number, startY:number, startColor:Color, endColor:Color ...]
 	function lines.drawBatchedLines(array)
 		---@type number
@@ -205,7 +205,7 @@ do -- batching functions
 	---@param endY number
 	---@param startColor Color
 	---@param endColor? Color
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	function lines.drawBatchedLine(startX, startY, endX, endY, startColor, endColor)
 		if endColor == nil then
 			endColor = startColor

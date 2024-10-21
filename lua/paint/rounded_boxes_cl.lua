@@ -172,7 +172,7 @@ do
 	---@param u2 number
 	---@param v2 number
 	---@param curviness number?
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	function roundedBoxes.generateSingleMesh(createVertex, mesh, radius, x, y, endX, endY, leftTop, rightTop, rightBottom, leftBottom, colors, u1, v1, u2, v2, curviness)
 		local vertsPerEdge = clamp(radius / 2, 3, 24)
 
@@ -394,7 +394,7 @@ do
 	---@param u2 number
 	---@param v2 number
 	---@param curviness number?
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	function roundedBoxes.roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2, curviness)
 		curviness = curviness or 2
 		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors, u1, v1, u2, v2, curviness)
@@ -501,7 +501,7 @@ do
 	---@param rightBottom? boolean
 	---@param leftBottom? boolean
 	---@param curviness number?
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	function roundedBoxes.roundedBoxExBatched(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, curviness)
 		prev1 = nil
 		prev2 = nil

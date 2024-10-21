@@ -45,7 +45,7 @@ do
 	-- this fixes rendering issues with batching
 
 	---Internal variable made for batching to store Z pos meshes won't overlap each other
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	paint.Z = 0
 
 	---resets paint.Z to 0
@@ -275,7 +275,7 @@ do
 	end
 
 	--- Simple helper function which makes bilinear interpolation
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	---@param x number # x is fraction between 0 and 1. 0 - left side, 1 - right side
 	---@param y number # y is fraction between 0 and 1. 0 - top side, 1 - bottom side
 	---@param leftTop integer

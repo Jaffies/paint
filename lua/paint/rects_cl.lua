@@ -86,7 +86,7 @@ do
 	---@param v2 number
 	---@param skew number? sets skew for top side of rect.
 	---@param topSize number? overrides size for top side of rect
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	function rects.generateRectMesh(mesh, startX, startY, endX, endY, colors, u1, v1, u2, v2, skew, topSize)
 		local startTopX = startX + (skew or 0)
 		local endTopX = topSize and topSize > 0 and startTopX + topSize or endX + (skew or 0)
@@ -121,7 +121,7 @@ do
 
 	--- Draws batched rects (quads)
 	---@param array table # {x, y, endX, endY, color1, color2, color3, color4, ...}
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	function rects.drawBatchedRects(array)
 		renderSetMaterial(mat)
 		meshBegin(PRIMITIVE_QUADS, array[0] / 8)
@@ -159,7 +159,7 @@ do
 	local batch = paint.batch
 
 	--- Adds rect to triangle batch queue
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	---@param startX number
 	---@param startY number
 	---@param endX number
@@ -261,7 +261,7 @@ do
 	end
 
 	--- Draws single rect (quad)
-	---@deprecated Internal variable. Not meant to use outside
+	---@private Internal variable. Not meant to use outside
 	---@param x number
 	---@param y number
 	---@param w number
