@@ -363,6 +363,8 @@ do
 
 	local batch = paint.batch
 
+	local getColorTable = paint.getColorTable
+
 	--- Main function to draw rects
 	---@param x number # start X position of the rectangle
 	---@param y number # start Y position of the rectangle
@@ -386,10 +388,7 @@ do
 	---@overload fun(x : number, y : number, w : number, h : number, colors: gradients, material? : IMaterial) # Overloaded variant without UV's. They are set to 0, 0, 1, 1
 	function rects.drawRect(x, y, w, h, colors, material, u1, v1, u2, v2, skew, topSize)
 		if colors[4] == nil then
-			colors[1] = colors
-			colors[2] = colors
-			colors[3] = colors
-			colors[4] = colors
+			colors = getColorTable(4, colors)
 		end
 
 		if u1 == nil then

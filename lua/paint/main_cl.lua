@@ -369,4 +369,20 @@ do
 	end
 end
 
+do
+	local tab = {}
+
+	-- When designing paint library i forgot that some third party libraries could use colors in pretty the same hacky way as i was
+	-- This func will move all color refs to outer table instead of mofifying color itself
+	---@param len integer
+	---@param color Color
+	function paint.getColorTable(len, color)
+		for i = 1, len do
+			tab[i] = color
+		end
+
+		return tab
+	end
+end
+
 _G.paint--[[@as paint]] = paint

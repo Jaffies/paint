@@ -170,6 +170,8 @@ do
 
 	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
 
+	local getColorTable = paint.getColorTable
+
 	---@param x number # CENTER X coordinate of circle
 	---@param y number # CENTER Y coordinate of circle
 	---@param w number x xradius # Width/X radius of circle
@@ -182,8 +184,7 @@ do
 	---For squircle like in IOS, curviness is 4, resulting in ``x^4+y^4=1``
 	function circles.drawCircle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, rotation, curviness)
 		if colors[2] == nil then
-			colors[1] = colors
-			colors[2] = colors
+			colors = getColorTable(2, colors)
 		end
 
 		curviness = 2 / (curviness or 2)
@@ -447,6 +448,8 @@ do
 
 	local batch = paint.batch
 
+	local getColorTable = paint.getColorTable
+
 	local generateOutlineMeshBatched = circles.generateOutlineMeshBatched
 	---Draws circled outline. UNBATCHED ONLY.
 	---@param x number # CENTER X coordinate of circled outline
@@ -464,8 +467,7 @@ do
 	---For squircle like in IOS, curviness is 4, resulting in ``outlineRatio^4<=x^4+y^4<=1``
 	function circles.drawOutline(x, y, w, h, colors, outlineWidth, vertexCount, startAngle, endAngle, material, startU, endU, curviness)
 		if colors[2] == nil then
-			colors[1] = colors
-			colors[2] = colors
+			colors = getColorTable(2, colors)
 		end
 
 		if vertexCount == nil then

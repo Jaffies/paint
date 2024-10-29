@@ -385,6 +385,8 @@ do
 	local drawOutlineSingle = outlines.drawOutlineSingle
 	local drawOutlineBatched = outlines.drawOutlineBatched
 
+	local getColorTable = paint.getColorTable
+
 	---Identical to drawOutline other than that it allows you to specify specific corners to be rounded.
 	---@param radius number
 	---@param x number start X position of outline
@@ -408,8 +410,7 @@ do
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineWidth: number, outlineHeight: number)
 	function outlines.drawOutlineEx(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside, cornerness)
 		if colors[2] == nil then
-			colors[1] = colors
-			colors[2] = colors
+			colors = getColorTable(2, colors)
 		end
 
 		if radius == 0 then
@@ -594,6 +595,8 @@ do
 	local defaultMat = Material('vgui/white')
 	local renderSetMaterial = render.SetMaterial
 
+	local getColorTable = paint.getColorTable
+
 	---@param x number start X position
 	---@param y number start Y position
 	---@param w number width
@@ -607,8 +610,7 @@ do
 	---@overload fun(x : number, y: number, w: number, h: number, colors: linearGradient, outlineX: number, outlineY: number)
 	function outlines.drawBoxOutline(x, y, w, h, colors, outlineL, outlineT, outlineR, outlineB)
 		if colors[2] == nil then
-			colors[1] = colors
-			colors[2] = colors
+			colors = getColorTable(2, colors)
 		end
 
 		if outlineT == nil then

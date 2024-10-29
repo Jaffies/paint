@@ -516,6 +516,7 @@ do
 	local roundedBoxExBatched = roundedBoxes.roundedBoxExBatched
 
 	local batch = paint.batch
+	local getColorTable = paint.getColorTable
 
 	-- Identical to roundedBox other than that it allows you to specify specific corners to be rounded.
 	-- For brevity, arguments duplicated from roundedBox are not repeated here.
@@ -539,10 +540,7 @@ do
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors : gradients, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, material? : IMaterial)
 	function roundedBoxes.roundedBoxEx(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2, curviness)
 		if colors[4] == nil then
-			colors[1] = colors
-			colors[2] = colors
-			colors[3] = colors
-			colors[4] = colors
+			colors = getColorTable(4, colors)
 		end
 
 		if u1 == nil then
@@ -833,6 +831,8 @@ do
 		)
 	end
 
+	local getColorTable = paint.getColorTable
+
 	---@param radius integer radius of rounded box corners
 	---@param x integer start x position
 	---@param y integer start y position
@@ -845,10 +845,7 @@ do
 	---@param leftBottom boolean?
 	function roundedBoxes.drawSimpleRoundedBoxEx(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom)
 		if colors[4] == nil then
-			colors[1] = colors
-			colors[2] = colors
-			colors[3] = colors
-			colors[4] = colors
+			colors = getColorTable(4, colors)
 		end
 
 		local id = getId(radius, w, h, colors[1], colors[2], colors[3], colors[4], (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0) )
