@@ -1,1 +1,0 @@
-print('batching example placeholder')

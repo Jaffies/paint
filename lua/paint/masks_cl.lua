@@ -22,6 +22,7 @@
 --- 	surface.DrawTexturedRect(0, 0, 128, 150)
 --- paint.masks.stop()
 ---```
+
 ---@class paint.masks
 ---@field source fun() # starts masking. The things you will draw there will be the alpha mask.
 ---@field destination fun() # coninues masking. The things you will draw there would be alpha masked.
@@ -29,11 +30,12 @@
 local masks = {}
 do
 	local w, h = ScrW(), ScrH()
-	local rt = GetRenderTargetEx('paint.masksRT', w, h, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_NONE, 1 + 256, 0, IMAGE_FORMAT_BGRA8888)
+	local rt = GetRenderTargetEx('paint.masksRT', w, h, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_NONE, 1 + 256, 0,
+		IMAGE_FORMAT_BGRA8888)
 
-	local material = CreateMaterial( "paint.masksMaterial", "UnlitGeneric", {
-	  ["$basetexture"] = "paint.masksRT",
-	  ["$translucent"] = 1,
+	local material = CreateMaterial("paint.masksMaterial", "UnlitGeneric", {
+		["$basetexture"] = "paint.masksRT",
+		["$translucent"] = 1,
 	})
 
 	---@type IMesh?
@@ -47,17 +49,19 @@ do
 		rectMesh = Mesh(material)
 
 		local color = Color(255, 255, 255)
-		paint.rects.generateRectMesh(rectMesh, 0, 0, w, h, {color, color, color, color}, 0, 0, 1, 1)
+		---@diagnostic disable-next-line: invisible
+		paint.rects.generateRectMesh(rectMesh, 0, 0, w, h, { color, color, color, color }, 0, 0, 1, 1)
 	end
 
 	createRectMesh()
 	---@cast rectMesh -?
 
-	hook.Add('OnScreenSizeChanged', 'paint.masks', function(_, _, newW, newH)
+	hook.Add('OnScreenSizeChanged', 'paint.masks' .. SysTime(), function(_, _, newW, newH)
 		w, h = newW, newH
 
 		rt:Download() -- I vaguely remember it being used to reset rt params. Might not work btw..
-		rt = GetRenderTargetEx('paint.masksRT', w, h, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_NONE, 1 + 256, 0, IMAGE_FORMAT_BGRA8888)
+		rt = GetRenderTargetEx('paint.masksRT', w, h, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_NONE, 1 + 256, 0,
+			IMAGE_FORMAT_BGRA8888)
 
 		createRectMesh()
 	end)
@@ -70,7 +74,7 @@ do
 	local camStart2D
 	do
 		local camStart = cam.Start
-		local data = {type = '2d'}
+		local data = { type = '2d' }
 
 		function camStart2D()
 			camStart(data)
@@ -107,4 +111,5 @@ do
 	end
 end
 
+---@diagnostic disable-next-line: inject-field
 paint.masks = masks

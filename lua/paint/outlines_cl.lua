@@ -1,5 +1,5 @@
 ---@diagnostic disable: deprecated
-local paint = paint--[[@as paint]]
+local paint = paint --[[@as paint]]
 
 --```
 --What makes paint outlines better than stencils:
@@ -67,7 +67,7 @@ do
 			return
 		end
 
-		local texU = 1 - (atan2( (1 - v) - 0.5, u - 0.5) / (2 * math.pi) + 0.5)
+		local texU = 1 - (atan2((1 - v) - 0.5, u - 0.5) / (2 * math.pi) + 0.5)
 
 		if prevU and prevU > texU then
 			texU = texU + 1
@@ -117,6 +117,7 @@ do
 		end
 	end
 
+	---@diagnostic disable-next-line: invisible
 	local generateSingleMesh = paint.roundedBoxes.generateSingleMesh
 
 	local meshBegin = mesh.Begin
@@ -148,7 +149,8 @@ do
 	---@param inside boolean?
 	---@param cornernessArg number?
 	---@private Internal variable, not meant to be used outside.
-	function outlines.generateOutlineSingle(mesh, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b, curviness, inside, cornernessArg)
+	function outlines.generateOutlineSingle(mesh, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors,
+											l, t, r, b, curviness, inside, cornernessArg)
 		isInside = inside or false
 		outlineTop, outlineRight, outlineBottom, outlineLeft = t or 0, r or 0, b or 0, l or 0
 		curviness = curviness or 2
@@ -157,8 +159,10 @@ do
 		isFirst = true
 		prevU = nil
 
-		meshBegin(mesh, PRIMITIVE_TRIANGLE_STRIP, getMeshVertexCount(radius, rightTop, rightBottom, leftBottom, leftTop) * 2)
-			generateSingleMesh(createVertex, nil, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1, curviness)
+		meshBegin(mesh, PRIMITIVE_TRIANGLE_STRIP,
+			getMeshVertexCount(radius, rightTop, rightBottom, leftBottom, leftTop) * 2)
+		generateSingleMesh(createVertex, nil, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, 0,
+			0, 1, 1, curviness)
 		meshEnd()
 	end
 end
@@ -203,7 +207,7 @@ do
 	local setMaterial = render.SetMaterial
 	local defaultMat = Material('vgui/white')
 
-	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
+	local meshDraw = FindMetaTable('IMesh') --[[@as IMesh]].Draw
 
 	---Draws outline. Unbatched
 	---@param radius number
@@ -225,19 +229,23 @@ do
 	---@param inside boolean
 	---@param cornerness number? Number in which corner fraction (value between 0 and 1) will be powered to. Default is 1
 	---@private Internal variable, not meant to be used outside.
-	function outlines.drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside, cornerness)
+	function outlines.drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material,
+										l, t, r, b, curviness, inside, cornerness)
 		curviness = curviness or 2
 		inside = inside or false
 		cornerness = cornerness or 1
 
 
-		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors[1], colors[2], l, t, r, b, curviness, inside, cornerness)
+		local id = getId(radius, w, h,
+			(leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors[1],
+			colors[2], l, t, r, b, curviness, inside, cornerness)
 
 		local meshObj = cachedOutlinedMeshes[id]
 
 		if meshObj == nil then
 			meshObj = meshConstructor()
-			generateOutlineSingle(meshObj, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t, r, b, curviness, inside, cornerness)
+			generateOutlineSingle(meshObj, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, l, t,
+				r, b, curviness, inside, cornerness)
 
 			cachedOutlinedMeshes[id] = meshObj
 		end
@@ -246,12 +254,12 @@ do
 		setField(matrix, 2, 4, y)
 
 		pushModelMatrix(matrix, true)
-			setMaterial(material or defaultMat)
-			meshDraw(meshObj)
+		setMaterial(material or defaultMat)
+		meshDraw(meshObj)
 		popModelMatrix()
 	end
 
-	timer.Create('paint.outlinesGarbageCollector', 15, 0, function()
+	timer.Create('paint.outlinesGarbageCollector' .. SysTime(), 15, 0, function()
 		for k, v in pairs(cachedOutlinedMeshes) do
 			v:Destroy()
 			cachedOutlinedMeshes[k] = nil
@@ -260,12 +268,13 @@ do
 end
 
 do
+	---@diagnostic disable-next-line: invisible
 	local generateSingleMesh = paint.roundedBoxes.generateSingleMesh
 
 	---@type number?, number?, number?, number?
 	local outlineL, outlineT, outlineR, outlineB -- use it to get outline widths per side
 	---@type boolean?
-	local first -- to skip first vertex since it is center of rounded box
+	local first                               -- to skip first vertex since it is center of rounded box
 	---@type number?, number?, number?, number?
 	local prevX, prevY, prevU, prevV
 	---@type number?
@@ -370,13 +379,15 @@ do
 	---@param b number
 	---@param curviness number?
 	---@private Internal variable, not meant to be used outside.
-	function outlines.drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, _, l, t, r, b, curviness)
+	function outlines.drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, _, l, t,
+										 r, b, curviness)
 		outlineL, outlineT, outlineR, outlineB = l, t, r, b
 		first = true
 		curviness = curviness or 2
 
 		z = incrementZ()
-		generateSingleMesh(createVertex, nil, radius, x, y, x + w, y + h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1, curviness)
+		generateSingleMesh(createVertex, nil, radius, x, y, x + w, y + h, leftTop, rightTop, rightBottom, leftBottom,
+			colors, 0, 0, 1, 1, curviness)
 	end
 end
 
@@ -400,7 +411,7 @@ do
 	---@param rightBottom? boolean
 	---@param leftBottom? boolean
 	---@param l number Left outline width
-	---@param t number Top outline width 
+	---@param t number Top outline width
 	---@param r number Right outline width
 	---@param b number Botton outline width
 	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
@@ -408,7 +419,8 @@ do
 	---@param cornerness number? Value, by which corner fraction (which value is between 0 and 1) will be powered to. Default - 1.
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineThickness: number)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, colors: Color[], material?: IMaterial, outlineWidth: number, outlineHeight: number)
-	function outlines.drawOutlineEx(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside, cornerness)
+	function outlines.drawOutlineEx(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l,
+									t, r, b, curviness, inside, cornerness)
 		if colors[2] == nil then
 			colors = getColorTable(2, colors)
 		end
@@ -428,9 +440,11 @@ do
 		cornerness = cornerness or 1
 
 		if batch.batching then
-			drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness)
+			drawOutlineBatched(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r,
+				b, curviness)
 		else
-			drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r, b, curviness, inside, cornerness)
+			drawOutlineSingle(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l, t, r,
+				b, curviness, inside, cornerness)
 		end
 	end
 
@@ -445,7 +459,7 @@ do
 	---@param colors linearGradient Colors of outline. Either a color, or table with 2 colors inside.
 	---@param material? IMaterial # Default material is vgui/white
 	---@param l number Left outline width
-	---@param t number Top outline width 
+	---@param t number Top outline width
 	---@param r number Right outline width
 	---@param b number Botton outline width
 	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
@@ -454,7 +468,8 @@ do
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineThickness: number, _ : nil, _ : nil, _ : nil, curviness: number?, inside : boolean?, cornerness: number?)
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors: gradients, material?: IMaterial, outlineWidth: number, outlineHeight: number, _ : nil, _ : nil, curviness: number?, inside : boolean?, cornerness: number?)
 	function outlines.drawOutline(radius, x, y, w, h, colors, material, l, t, r, b, curviness, inside, cornerness)
-		drawOutlineEx(radius, x, y, w, h, true, true, true, true, colors, material, l, t, r, b, curviness, inside, cornerness)
+		drawOutlineEx(radius, x, y, w, h, true, true, true, true, colors, material, l, t, r, b, curviness, inside,
+			cornerness)
 	end
 end
 
@@ -488,73 +503,73 @@ do
 		local outerR, outerG, outerB, outerA = colors[2].r, colors[2].g, colors[2].b, colors[2].a
 
 		meshBegin(meshObj, PRIMITIVE_TRIANGLE_STRIP, 17)
-			meshPosition(x, y, 0)
-			meshColor(innerR, innerG, innerB, innerA)
-			meshAdvanceVertex()
+		meshPosition(x, y, 0)
+		meshColor(innerR, innerG, innerB, innerA)
+		meshAdvanceVertex()
 
-			meshPosition(x, y - outlineT, 0)
-			meshColor(outerR, outerG, outerB, outerA)
-			meshAdvanceVertex()
+		meshPosition(x, y - outlineT, 0)
+		meshColor(outerR, outerG, outerB, outerA)
+		meshAdvanceVertex()
 
-			meshPosition(endX, y, 0)
-			meshColor(innerR, innerG, innerB, innerA)
-			meshAdvanceVertex()
+		meshPosition(endX, y, 0)
+		meshColor(innerR, innerG, innerB, innerA)
+		meshAdvanceVertex()
 
-			meshPosition(endX, y - outlineT, 0)
-			meshColor(outerR, outerG, outerB, outerA)
-			meshAdvanceVertex()
+		meshPosition(endX, y - outlineT, 0)
+		meshColor(outerR, outerG, outerB, outerA)
+		meshAdvanceVertex()
 
-			meshPosition(endX, y, 0)
-			meshColor(innerR, innerG, innerB, innerA)
-			meshAdvanceVertex()
+		meshPosition(endX, y, 0)
+		meshColor(innerR, innerG, innerB, innerA)
+		meshAdvanceVertex()
 
-			meshPosition(endX + outlineR, y, 0)
-			meshColor(outerR, outerG, outerB, outerA)
-			meshAdvanceVertex()
+		meshPosition(endX + outlineR, y, 0)
+		meshColor(outerR, outerG, outerB, outerA)
+		meshAdvanceVertex()
 
-			meshPosition(endX, endY, 0)
-			meshColor(innerR, innerG, innerB, innerA)
-			meshAdvanceVertex()
+		meshPosition(endX, endY, 0)
+		meshColor(innerR, innerG, innerB, innerA)
+		meshAdvanceVertex()
 
-			meshPosition(endX + outlineR, endY, 0)
-			meshColor(outerR, outerG, outerB, outerA)
-			meshAdvanceVertex()
+		meshPosition(endX + outlineR, endY, 0)
+		meshColor(outerR, outerG, outerB, outerA)
+		meshAdvanceVertex()
 
-			meshPosition(endX, endY, 0)
-			meshColor(innerR, innerB, innerB, innerA)
-			meshAdvanceVertex()
+		meshPosition(endX, endY, 0)
+		meshColor(innerR, innerB, innerB, innerA)
+		meshAdvanceVertex()
 
-			meshPosition(endX, endY + outlineB, 0)
-			meshColor(outerR, outerB, outerB, outerA)
-			meshAdvanceVertex()
+		meshPosition(endX, endY + outlineB, 0)
+		meshColor(outerR, outerB, outerB, outerA)
+		meshAdvanceVertex()
 
-			meshPosition(x, endY, 0)
-			meshColor(innerR, innerG, innerB, innerA)
-			meshAdvanceVertex()
+		meshPosition(x, endY, 0)
+		meshColor(innerR, innerG, innerB, innerA)
+		meshAdvanceVertex()
 
-			meshPosition(x, endY + outlineB, 0)
-			meshColor(outerR, outerG, outerB, outerA)
-			meshAdvanceVertex()
+		meshPosition(x, endY + outlineB, 0)
+		meshColor(outerR, outerG, outerB, outerA)
+		meshAdvanceVertex()
 
-			meshPosition(x, endY, 0)
-			meshColor(innerR, innerG, innerB, innerA)
-			meshAdvanceVertex()
+		meshPosition(x, endY, 0)
+		meshColor(innerR, innerG, innerB, innerA)
+		meshAdvanceVertex()
 
-			meshPosition(x - outlineL, endY, 0)
-			meshColor(outerR, outerG, outerB, outerA)
-			meshAdvanceVertex()
+		meshPosition(x - outlineL, endY, 0)
+		meshColor(outerR, outerG, outerB, outerA)
+		meshAdvanceVertex()
 
-			meshPosition(x, y, 0)
-			meshColor(innerR, innerG, innerB, innerA)
-			meshAdvanceVertex()
+		meshPosition(x, y, 0)
+		meshColor(innerR, innerG, innerB, innerA)
+		meshAdvanceVertex()
 
-			meshPosition(x - outlineL, y, 0)
-			meshColor(outerR, outerG, outerB, outerA)
-			meshAdvanceVertex()
+		meshPosition(x - outlineL, y, 0)
+		meshColor(outerR, outerG, outerB, outerA)
+		meshAdvanceVertex()
 
-			meshPosition(x, y - outlineL, 0)
-			meshColor(outerR, outerG, outerB, outerA)
-			meshAdvanceVertex()
+		meshPosition(x, y - outlineL, 0)
+		meshColor(outerR, outerG, outerB, outerA)
+		meshAdvanceVertex()
 		meshEnd()
 
 		return meshObj
@@ -590,7 +605,7 @@ do
 	local matrix = Matrix()
 	local setField = matrix.SetField
 
-	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
+	local meshDraw = FindMetaTable('IMesh') --[[@as IMesh]].Draw
 
 	local defaultMat = Material('vgui/white')
 	local renderSetMaterial = render.SetMaterial
@@ -634,11 +649,11 @@ do
 		renderSetMaterial(defaultMat)
 
 		camPushModelMatrix(matrix, true)
-			meshDraw(mesh)
+		meshDraw(mesh)
 		camPopModelMatrix()
 	end
 
-	timer.Create('paint.cachedBoxOutlineGarbageCollector', 60, 0, function()
+	timer.Create('paint.cachedBoxOutlineGarbageCollector' .. SysTime(), 60, 0, function()
 		for k, v in pairs(cachedBoxOutlineMeshes) do
 			v:Destroy()
 			cachedBoxOutlineMeshes[k] = nil

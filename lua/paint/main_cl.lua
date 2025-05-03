@@ -22,17 +22,16 @@
 --- Coded by [@jaffies](https://github.com/jaffies), aka [@mikhail_svetov](https://github.com/jaffies) (formely @michael_svetov) in discord.
 --- Thanks to [A1steaksa](https://github.com/Jaffies/paint/pull/1), PhoenixF, [Riddle](https://github.com/Jaffies/paint/pull/2) and other people in gmod discord for various help
 ---
---- Please, keep in mind that this library is still in development. 
+--- Please, keep in mind that this library is still in development.
 --- You can help the project by contributing to it at [github repository](https://github.com/jaffies/paint)
 ---@class paint # paint library. Provides ability to draw shapes with mesh power
 ---@field lines paint.lines # lines module of paint library. Can make batched and gradient lines out of the box
 ---@field roundedBoxes paint.roundedBoxes # roundedBoxes provide better rounded boxes drawing because it makes them via meshes/polygons you name it.
 ---@field rects paint.rects # Rect module, gives rects with ability to batch and gradient per corner support
----@field outlines paint.outlines # outline module, gives you ability to create hollow outlines with  
----@field batch paint.batch Unfinished module of batching. Provides a way to create IMeshes 
----@field examples paint.examples example library made for help people understand how paint library actually works. Can be opened via ``lua_run examples.showHelp()``
+---@field outlines paint.outlines # outline module, gives you ability to create hollow outlines with
+---@field batch paint.batch Unfinished module of batching. Provides a way to create IMeshes
 ---@field blur paint.blur blur library, provides a nice way to retrieve a cheap blur textures/materials
----@field api paint.api 
+---@field api paint.api
 ---@field circles paint.circles Circles! killer.
 ---@field svg paint.svg
 ---@field downsampling paint.downsampling
@@ -66,68 +65,68 @@ do
 	end
 
 	--- Calculates Z position, depending of paint.Z value. Made for batching
-	---@return number z # calculated Z position. Is not equal to paint.Z 
+	---@return number z # calculated Z position. Is not equal to paint.Z
 	function paint.getZ()
 		return -1 + paint.Z / 8192
 	end
 end
 
 do -- Additional stuff to scissor rect.
-    -- needed for panels, i.e. multiple DScrollPanels clipping.
-    local tab = {}
-    local len = 0
+	-- needed for panels, i.e. multiple DScrollPanels clipping.
+	local tab = {}
+	local len = 0
 
-    local setScissorRect = render.SetScissorRect
-    local max = math.max
-    local min = math.min
+	local setScissorRect = render.SetScissorRect
+	local max = math.max
+	local min = math.min
 
-    --- Pushes new scissor rect boundaries to stack. Simmilar to Push ModelMatrix/RenderTarget/Filter(Mag/Min)
-    ---@see render.PushRenderTarget # A simmilar approach to render targets.
-    ---@param x number # start x position
-    ---@param y number # start y position
-    ---@param endX number # end x position. Must be bigger than x
-    ---@param endY number # end y position. Must be bigger than y
-    function paint.pushScissorRect(x, y, endX, endY)
-        local prev = tab[len]
+	--- Pushes new scissor rect boundaries to stack. Simmilar to Push ModelMatrix/RenderTarget/Filter(Mag/Min)
+	---@see render.PushRenderTarget # A simmilar approach to render targets.
+	---@param x number # start x position
+	---@param y number # start y position
+	---@param endX number # end x position. Must be bigger than x
+	---@param endY number # end y position. Must be bigger than y
+	function paint.pushScissorRect(x, y, endX, endY)
+		local prev = tab[len]
 
-        if prev then
-            x = max(prev[1], x)
-            y = max(prev[2], y)
-            endX = min(prev[3], endX)
-            endY = min(prev[4], endY)
-        end
+		if prev then
+			x = max(prev[1], x)
+			y = max(prev[2], y)
+			endX = min(prev[3], endX)
+			endY = min(prev[4], endY)
+		end
 
-        len = len + 1
+		len = len + 1
 
-        tab[len] = {x, y, endX, endY}
-        setScissorRect(x, y, endX, endY, true)
-    end
+		tab[len] = { x, y, endX, endY }
+		setScissorRect(x, y, endX, endY, true)
+	end
 
-    --- Pops last scissor rect's boundaries from the stack. Simmilar to Pop ModelMatrix/RenderTarget/Filter(Mag/Min)
-    ---@see paint.pushScissorRect
-    function paint.popScissorRect()
-        tab[len] = nil
-        len = max(0, len - 1)
+	--- Pops last scissor rect's boundaries from the stack. Simmilar to Pop ModelMatrix/RenderTarget/Filter(Mag/Min)
+	---@see paint.pushScissorRect
+	function paint.popScissorRect()
+		tab[len] = nil
+		len = max(0, len - 1)
 
-        local newTab = tab[len]
+		local newTab = tab[len]
 
-        if newTab then
-            setScissorRect(newTab[1], newTab[2], newTab[3], newTab[4], true)
-        else
-            setScissorRect(0, 0, 0, 0, false)
-        end
-    end
+		if newTab then
+			setScissorRect(newTab[1], newTab[2], newTab[3], newTab[4], true)
+		else
+			setScissorRect(0, 0, 0, 0, false)
+		end
+	end
 end
 
 do
 	local vector = Vector()
-	local paintColoredMaterial = CreateMaterial( "testMaterial" .. SysTime(), "UnlitGeneric", {
-	  ["$basetexture"] = "color/white",
-	  ["$model"] = 1,
-	  ["$translucent"] = 1,
-	  ["$vertexalpha"] = 1,
-	  ["$vertexcolor"] = 1
-	} )
+	local paintColoredMaterial = CreateMaterial("testMaterial" .. SysTime(), "UnlitGeneric", {
+		["$basetexture"] = "color/white",
+		["$model"] = 1,
+		["$translucent"] = 1,
+		["$vertexalpha"] = 1,
+		["$vertexcolor"] = 1
+	})
 
 	local recompute = paintColoredMaterial.Recompute
 	local setVector = paintColoredMaterial.SetVector
@@ -137,7 +136,7 @@ do
 
 	---This function provides you a material with solid color, allowing you to replicate ``render.SetColorModulation``/``surface.SetDrawColor``
 	---
-	---Meant to be used to have paint's shapes have animated colors without rebuilding mesh every time color changes 
+	---Meant to be used to have paint's shapes have animated colors without rebuilding mesh every time color changes
 	---
 	---It will tint every color of shape, but not override it. Meaning that yellow color wont be overriden to blue.
 	---
@@ -175,8 +174,8 @@ do
 	local pushModelMatrix = cam.PushModelMatrix
 	local popModelMatrix = cam.PopModelMatrix
 
-	---@type Panel
 	local panelTab = FindMetaTable('Panel')
+	---@cast panelTab Panel
 
 	local localToScreen = panelTab.LocalToScreen
 	local getSize = panelTab.GetSize
@@ -200,7 +199,6 @@ do
 		local x, y = localToScreen(panel, 0, 0)
 
 		if pos or pos == nil then
-
 			setField(matrix, 1, 4, x)
 			setField(matrix, 2, 4, y)
 
@@ -237,10 +235,10 @@ do
 
 	local getPanelPaintState = surface.GetPanelPaintState
 
-	---# Starts new VGUI context 
+	---# Starts new VGUI context
 	---A modern alternative to paint.startPanel without the need to pass a reference of panel
-	---and without the need to manually clip ``DScrollPanel``s.  
-	---## Example:  
+	---and without the need to manually clip ``DScrollPanel``s.
+	---## Example:
 	---```lua
 	---function PANEL:Paint(w, h)
 	---	paint.startVGUI()
@@ -265,9 +263,9 @@ do
 		end
 	end
 
-	---# Ends new VGUI context 
+	---# Ends new VGUI context
 	---A modern alternative to paint.startPanel without the need to pass a reference of panel
-	---and without the need to manually clip ``DScrollPanel``s.  
+	---and without the need to manually clip ``DScrollPanel``s.
 	---@see paint.startPanel
 	function paint.endVGUI()
 		popModelMatrix()
@@ -285,8 +283,9 @@ do
 	---@return number result # result of bilinear interpolation
 	function paint.bilinearInterpolation(x, y, leftTop, rightTop, rightBottom, leftBottom)
 		if leftTop == rightTop and leftTop == rightBottom and leftTop == leftBottom then return leftTop end -- Fix (sometimes 255 alpha could get 254, probably double prescision isn't enought or smth like that)
-		local top = leftTop == rightTop and leftTop or ( (1 - x) * leftTop + x * rightTop)
-		local bottom = leftBottom == rightBottom and leftBottom or ((1 - x) * leftBottom + x * rightBottom) -- more precise checking
+		local top = leftTop == rightTop and leftTop or ((1 - x) * leftTop + x * rightTop)
+		local bottom = leftBottom == rightBottom and leftBottom or
+			((1 - x) * leftBottom + x * rightBottom) -- more precise checking
 		return (1 - y) * top + y * bottom
 	end
 end
@@ -320,19 +319,19 @@ do
 		local iMesh = meshConstructor()
 
 		meshBegin(iMesh, PRIMITIVE_POLYGON, len)
-			for i = 1, len do
-				local v = vertices[i]
+		for i = 1, len do
+			local v = vertices[i]
 
-				local color = v.color or colorWhite
-				meshPosition(v.x, v.y, 0)
-				meshColor(color.r, color.g, color.b, color.a)
+			local color = v.color or colorWhite
+			meshPosition(v.x, v.y, 0)
+			meshColor(color.r, color.g, color.b, color.a)
 
-				if v.u then
-					meshTexCoord(0, v.u, v.v)
-				end
-
-				meshAdvanceVertex()
+			if v.u then
+				meshTexCoord(0, v.u, v.v)
 			end
+
+			meshAdvanceVertex()
+		end
 		meshEnd()
 
 		return iMesh
@@ -352,19 +351,19 @@ do
 		renderSetMaterial(material or defaultMat)
 
 		meshBegin(PRIMITIVE_POLYGON, len)
-			for i = 1, len do
-				local v = vertices[i]
+		for i = 1, len do
+			local v = vertices[i]
 
-				local color = v.color or colorWhite
-				meshPosition(v.x, v.y, 0)
-				meshColor(color.r, color.g, color.b, color.a)
+			local color = v.color or colorWhite
+			meshPosition(v.x, v.y, 0)
+			meshColor(color.r, color.g, color.b, color.a)
 
-				if v.u then
-					meshTexCoord(0, v.u, v.v)
-				end
-
-				meshAdvanceVertex()
+			if v.u then
+				meshTexCoord(0, v.u, v.v)
 			end
+
+			meshAdvanceVertex()
+		end
 		meshEnd()
 	end
 end
@@ -385,4 +384,4 @@ do
 	end
 end
 
-_G.paint--[[@as paint]] = paint
+_G.paint --[[@as paint]] = paint

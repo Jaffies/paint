@@ -1,5 +1,5 @@
 ---@diagnostic disable: deprecated
-local paint = paint--[[@as paint]]
+local paint = paint --[[@as paint]]
 
 ---	What makes paint rectangles different from surface and draw rectangles?
 ---	1) Support for linear, per-corner gradients!
@@ -40,7 +40,7 @@ do
 			And there's no material parameter
 	]]
 
---[[ 	function rects.generateRectMesh(startX, startY, endX, endY, colors, u1, v1, u2, v2)
+	--[[ 	function rects.generateRectMesh(startX, startY, endX, endY, colors, u1, v1, u2, v2)
 
 		local leftBottom = { pos = vector(startX, endY), color = colors[4], u = u1, v = v2 }
 		local rightTop = { pos = vector(endX, startY), color = colors[2], u = u2, v = v1 }
@@ -92,25 +92,25 @@ do
 		local endTopX = topSize and topSize > 0 and startTopX + topSize or endX + (skew or 0)
 
 		meshBegin(mesh, PRIMITIVE_QUADS, 1)
-			meshPosition(startX, endY, 0)
-			meshColor(unpackColor(colors[4]))
-			meshTexCoord(0, u1, v2)
-			meshAdvanceVertex()
+		meshPosition(startX, endY, 0)
+		meshColor(unpackColor(colors[4]))
+		meshTexCoord(0, u1, v2)
+		meshAdvanceVertex()
 
-			meshPosition(startTopX, startY, 0)
-			meshColor(unpackColor(colors[1]))
-			meshTexCoord(0, u1, v1)
-			meshAdvanceVertex()
+		meshPosition(startTopX, startY, 0)
+		meshColor(unpackColor(colors[1]))
+		meshTexCoord(0, u1, v1)
+		meshAdvanceVertex()
 
-			meshPosition(endTopX, startY, 0)
-			meshColor(unpackColor(colors[2]))
-			meshTexCoord(0, u2, v1)
-			meshAdvanceVertex()
+		meshPosition(endTopX, startY, 0)
+		meshColor(unpackColor(colors[2]))
+		meshTexCoord(0, u2, v1)
+		meshAdvanceVertex()
 
-			meshPosition(endX, endY, 0)
-			meshColor(unpackColor(colors[3]))
-			meshTexCoord(0, u2, v2)
-			meshAdvanceVertex()
+		meshPosition(endX, endY, 0)
+		meshColor(unpackColor(colors[3]))
+		meshTexCoord(0, u2, v2)
+		meshAdvanceVertex()
 		meshEnd()
 	end
 
@@ -125,30 +125,30 @@ do
 	function rects.drawBatchedRects(array)
 		renderSetMaterial(mat)
 		meshBegin(PRIMITIVE_QUADS, array[0] / 8)
-			for i = 1, array[0], 8 do
-				local x, y, endX, endY = array[i], array[i + 1], array[i + 2], array[i + 3]
-				local color1, color2, color3, color4 = array[i + 4], array[i + 5], array[i + 6], array[i + 7]
+		for i = 1, array[0], 8 do
+			local x, y, endX, endY = array[i], array[i + 1], array[i + 2], array[i + 3]
+			local color1, color2, color3, color4 = array[i + 4], array[i + 5], array[i + 6], array[i + 7]
 
-				meshPosition(x, endY, 0)
-				meshColor(color4.r, color4.g, color4.b, color4.a)
+			meshPosition(x, endY, 0)
+			meshColor(color4.r, color4.g, color4.b, color4.a)
 
-				meshAdvanceVertex()
+			meshAdvanceVertex()
 
-				meshPosition(x, y, 0)
-				meshColor(color1.r, color1.g, color1.b, color1.a)
+			meshPosition(x, y, 0)
+			meshColor(color1.r, color1.g, color1.b, color1.a)
 
-				meshAdvanceVertex()
+			meshAdvanceVertex()
 
-				meshPosition(endX, y, 0)
-				meshColor(color2.r, color2.g, color2.b, color2.a)
+			meshPosition(endX, y, 0)
+			meshColor(color2.r, color2.g, color2.b, color2.a)
 
-				meshAdvanceVertex()
+			meshAdvanceVertex()
 
-				meshPosition(endX, endY, 0)
-				meshColor(color3.r, color3.g, color3.b, color3.a)
+			meshPosition(endX, endY, 0)
+			meshColor(color3.r, color3.g, color3.b, color3.a)
 
-				meshAdvanceVertex()
-			end
+			meshAdvanceVertex()
+		end
 		meshEnd()
 	end
 end
@@ -222,7 +222,7 @@ do
 	local format = string.format
 
 	local meshConstructor = Mesh
-	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
+	local meshDraw = FindMetaTable('IMesh') --[[@as IMesh]].Draw
 
 	local renderSetMaterial = render.SetMaterial
 
@@ -293,7 +293,7 @@ do
 		meshDraw(mesh)
 	end
 
-	timer.Create('paint.rectMeshGarbageCollector', 60, 0, function()
+	timer.Create('paint.rectMeshGarbageCollector' .. SysTime(), 60, 0, function()
 		for k, v in pairs(cachedRectMeshes) do
 			cachedRectMeshes[k] = nil
 			v:Destroy()
@@ -302,7 +302,6 @@ do
 end
 
 do --- Rect specific batching
-
 	---Begins batching rectangles together to draw them all at once with greatly improved performance.
 	---
 	---This is primarily useful when drawing a large number of rectangles.
@@ -341,13 +340,13 @@ do --- Rect specific batching
 		tab[len + 2] = y
 		tab[len + 3] = x + w
 		tab[len + 4] = y + h
----@diagnostic disable-next-line: assign-type-mismatch
+		---@diagnostic disable-next-line: assign-type-mismatch
 		tab[len + 5] = colors[1]
----@diagnostic disable-next-line: assign-type-mismatch
+		---@diagnostic disable-next-line: assign-type-mismatch
 		tab[len + 6] = colors[2]
----@diagnostic disable-next-line: assign-type-mismatch
+		---@diagnostic disable-next-line: assign-type-mismatch
 		tab[len + 7] = colors[3]
----@diagnostic disable-next-line: assign-type-mismatch
+		---@diagnostic disable-next-line: assign-type-mismatch
 		tab[len + 8] = colors[4]
 
 		tab[0] = len + 8
@@ -370,14 +369,14 @@ do
 	---@param y number # start Y position of the rectangle
 	---@param w number # width of the rectangle
 	---@param h number # height of the rectangle
-	---@param colors gradients # Either a table of Colors, or a single Color.  
-		---      If it is a table, it must have 4 elements, one for each corner.
-		---
-		---      The order of the corners is:
-		---            1. Top-Left 
-		---            2. Top-Right
-		---            3. Bottom-Right 
-		---            4. Bottom-Left
+	---@param colors gradients # Either a table of Colors, or a single Color.
+	---      If it is a table, it must have 4 elements, one for each corner.
+	---
+	---      The order of the corners is:
+	---            1. Top-Left
+	---            2. Top-Right
+	---            3. Bottom-Right
+	---            4. Bottom-Left
 	---@param material? IMaterial # Either a Material, or nil.  Default: vgui/white
 	---@param u1 number # The texture U coordinate of the Top-Left corner of the rectangle. Default : 0
 	---@param v1 number # The texture V coordinate of the Top-Left corner of the rectangle. Default : 0

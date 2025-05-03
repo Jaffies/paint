@@ -1,5 +1,5 @@
 ---@diagnostic disable: deprecated
----Simple library that provides a way to downsample your shapes.  
+---Simple library that provides a way to downsample your shapes.
 ---In other words: It provides you a way to make SSAA (super sampling anti aliasing) with 2D/3D meshes.
 ---@class paint.downsampling
 local downspampling = {}
@@ -8,7 +8,8 @@ local paint = paint
 do
 	local w, h = ScrW(), ScrH()
 
-	local rt = GetRenderTargetEx('paint.downsampleRT', w * 2, h * 2, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, 2 + 256, 0, IMAGE_FORMAT_BGRA8888)
+	local rt = GetRenderTargetEx('paint.downsampleRT', w * 2, h * 2, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, 2 + 256,
+		0, IMAGE_FORMAT_BGRA8888)
 	local material = CreateMaterial('paint.downsampleMat', 'UnlitGeneric', {
 		['$basetexture'] = rt:GetName(),
 		['$translucent'] = '1'
@@ -25,17 +26,19 @@ do
 		rectMesh = Mesh(material)
 
 		local color = Color(255, 255, 255)
-		paint.rects.generateRectMesh(rectMesh, 0, 0, w, h, {color, color, color, color}, 0, 0, 1, 1)
+		---@diagnostic disable-next-line: invisible
+		paint.rects.generateRectMesh(rectMesh, 0, 0, w, h, { color, color, color, color }, 0, 0, 1, 1)
 	end
 
 	createRectMesh()
 	---@cast rectMesh -?
 
-	hook.Add('OnScreenSizeChanged', 'paint.downsampling', function(_, _, newW, newH)
+	hook.Add('OnScreenSizeChanged', 'paint.downsampling' .. SysTime(), function(_, _, newW, newH)
 		w, h = newW, newH
 
 		rt:Download() -- I vaguely remember it being used to reset rt params. Might not work btw..
-		rt = GetRenderTargetEx('paint.downsampleRT', w * 2, h * 2, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, 2 + 256, 0, IMAGE_FORMAT_BGRA8888)
+		rt = GetRenderTargetEx('paint.downsampleRT', w * 2, h * 2, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, 2 + 256,
+			0, IMAGE_FORMAT_BGRA8888)
 		createRectMesh()
 	end)
 
@@ -76,8 +79,8 @@ do
 
 		pushFilterMin(2)
 		pushFilterMag(2)
-			setMaterial(material)
-			drawMesh(rectMesh)
+		setMaterial(material)
+		drawMesh(rectMesh)
 		popFilterMin()
 		popFilterMag()
 	end

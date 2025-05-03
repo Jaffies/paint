@@ -1,5 +1,5 @@
 ---@diagnostic disable: deprecated
-local paint = _G.paint--[[@as paint]]
+local paint = _G.paint --[[@as paint]]
 
 --What makes paint rounded boxes better than the draw library's rounded boxes?
 --1) Support for per-corner gradients!
@@ -31,61 +31,61 @@ local paint = _G.paint--[[@as paint]]
 --
 --Stencil Masked Example
 --```lua
-	-- local function mask(drawMask, draw)
-	-- 	render.ClearStencil()
-	-- 	render.SetStencilEnable(true)
-	--
-	-- 	render.SetStencilWriteMask(1)
-	-- 	render.SetStencilTestMask(1)
-	--
-	-- 	render.SetStencilFailOperation(STENCIL_REPLACE)
-	-- 	render.SetStencilPassOperation( STENCIL_REPLACE)
-	-- 	render.SetStencilZFailOperation(STENCIL_KEEP)
-	-- 	render.SetStencilCompareFunction(STENCIL_ALWAYS)
-	-- 	render.SetStencilReferenceValue(1)
-	--
-	-- 	drawMask()
-	--
-	-- 	render.SetStencilFailOperation(STENCIL_KEEP)
-	-- 	render.SetStencilPassOperation(STENCIL_REPLACE)
-	-- 	render.SetStencilZFailOperation(STENCIL_KEEP)
-	-- 	render.SetStencilCompareFunction(STENCIL_EQUAL)
-	-- 	render.SetStencilReferenceValue(1)
-	--
-	-- 	draw()
-	--
-	-- 	render.SetStencilEnable(false)
-	-- 	render.ClearStencil()
-	-- end
-	--
-	-- local RIPPLE_DIE_TIME = 1
-	-- local RIPPLE_START_ALPHA = 50
-	--
-	-- function button:Paint(w, h)
-	-- 	paint.startPanel(self)
-	-- 		mask(function()
-	-- 			paint.roundedBoxes.roundedBox( 32, 0, 0, w, h, COLOR_RED )
-	-- 		end,
-	-- 		function()
-	-- 			local ripple = self.rippleEffect
-	--
-	-- 			if ripple == nil then return end
-	--
-	-- 			local rippleX, rippleY, rippleStartTime = ripple[1], ripple[2], ripple[3]
-	--
-	-- 			local percent = (RealTime() - rippleStartTime)  / RIPPLE_DIE_TIME
-	--
-	-- 			if percent >= 1 then
-	-- 				self.rippleEffect = nil
-	-- 			else
-	-- 				local alpha = RIPPLE_START_ALPHA * (1 - percent)
-	-- 				local radius = math.max(w, h) * percent * math.sqrt(2)
-	--
-	-- 				paint.roundedBoxes.roundedBox(radius, rippleX - radius, rippleY - radius, radius * 2, radius * 2, ColorAlpha(COLOR_WHITE, alpha))
-	-- 			end
-	-- 		end)
-	-- 	paint.endPanel()
-	-- end
+-- local function mask(drawMask, draw)
+-- 	render.ClearStencil()
+-- 	render.SetStencilEnable(true)
+--
+-- 	render.SetStencilWriteMask(1)
+-- 	render.SetStencilTestMask(1)
+--
+-- 	render.SetStencilFailOperation(STENCIL_REPLACE)
+-- 	render.SetStencilPassOperation( STENCIL_REPLACE)
+-- 	render.SetStencilZFailOperation(STENCIL_KEEP)
+-- 	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+-- 	render.SetStencilReferenceValue(1)
+--
+-- 	drawMask()
+--
+-- 	render.SetStencilFailOperation(STENCIL_KEEP)
+-- 	render.SetStencilPassOperation(STENCIL_REPLACE)
+-- 	render.SetStencilZFailOperation(STENCIL_KEEP)
+-- 	render.SetStencilCompareFunction(STENCIL_EQUAL)
+-- 	render.SetStencilReferenceValue(1)
+--
+-- 	draw()
+--
+-- 	render.SetStencilEnable(false)
+-- 	render.ClearStencil()
+-- end
+--
+-- local RIPPLE_DIE_TIME = 1
+-- local RIPPLE_START_ALPHA = 50
+--
+-- function button:Paint(w, h)
+-- 	paint.startPanel(self)
+-- 		mask(function()
+-- 			paint.roundedBoxes.roundedBox( 32, 0, 0, w, h, COLOR_RED )
+-- 		end,
+-- 		function()
+-- 			local ripple = self.rippleEffect
+--
+-- 			if ripple == nil then return end
+--
+-- 			local rippleX, rippleY, rippleStartTime = ripple[1], ripple[2], ripple[3]
+--
+-- 			local percent = (RealTime() - rippleStartTime)  / RIPPLE_DIE_TIME
+--
+-- 			if percent >= 1 then
+-- 				self.rippleEffect = nil
+-- 			else
+-- 				local alpha = RIPPLE_START_ALPHA * (1 - percent)
+-- 				local radius = math.max(w, h) * percent * math.sqrt(2)
+--
+-- 				paint.roundedBoxes.roundedBox(radius, rippleX - radius, rippleY - radius, radius * 2, radius * 2, ColorAlpha(COLOR_WHITE, alpha))
+-- 			end
+-- 		end)
+-- 	paint.endPanel()
+-- end
 --```
 --
 --Animated Rainbow Colors Example
@@ -132,7 +132,7 @@ do
 	---@param rightBottom boolean?
 	---@param leftBottom boolean?
 	---@param leftTop boolean?
-	---@return integer vertex count 
+	---@return integer vertex count
 	function roundedBoxes.getMeshVertexCount(radius, rightTop, rightBottom, leftBottom, leftTop)
 		if radius > 3 then
 			local vertsPerEdge = clamp(radius / 2, 3, 24)
@@ -154,7 +154,7 @@ do
 
 	---@type Color[]
 	local centreTab = {}
-	--- Generates roundedBox mesh, used by outlines, 
+	--- Generates roundedBox mesh, used by outlines,
 	---@param createVertex paint.createVertexFunc # function used to create vertex.
 	---@param mesh? IMesh
 	---@param radius number
@@ -173,7 +173,8 @@ do
 	---@param v2 number
 	---@param curviness number?
 	---@private Internal variable. Not meant to use outside
-	function roundedBoxes.generateSingleMesh(createVertex, mesh, radius, x, y, endX, endY, leftTop, rightTop, rightBottom, leftBottom, colors, u1, v1, u2, v2, curviness)
+	function roundedBoxes.generateSingleMesh(createVertex, mesh, radius, x, y, endX, endY, leftTop, rightTop, rightBottom,
+											 leftBottom, colors, u1, v1, u2, v2, curviness)
 		local vertsPerEdge = clamp(radius / 2, 3, 24)
 
 		local isRadiusBig = radius > 3
@@ -196,7 +197,7 @@ do
 
 		createVertex(x + (leftTop and radius or 0), y, (leftTop and radius or 0) / w, 0, colors, u1, v1, u2, v2)
 
-		createVertex( (x + endX) * 0.5, y, 0.5, 0, colors, u1, v1, u2, v2)
+		createVertex((x + endX) * 0.5, y, 0.5, 0, colors, u1, v1, u2, v2)
 
 		createVertex(endX - (rightTop and radius or 0), y, 1 - (rightTop and radius or 0) / w, 0, colors, u1, v1, u2, v2)
 		-- 3 vertices
@@ -213,7 +214,7 @@ do
 
 					local newX, newY = deltaX + sinn * radius, deltaY - coss * radius
 
-					createVertex(newX, newY, 1 - (1-sinn) * radius / w, ( 1 - coss) * radius / h, colors, u1, v1, u2, v2 )
+					createVertex(newX, newY, 1 - (1 - sinn) * radius / w, (1 - coss) * radius / h, colors, u1, v1, u2, v2)
 				end
 			end
 
@@ -222,7 +223,8 @@ do
 
 		createVertex(endX, (y + endY) * 0.5, 1, 0.5, colors, u1, v1, u2, v2)
 
-		createVertex(endX, endY - (rightBottom and radius or 0), 1, 1 - (rightBottom and radius or 0) / h, colors, u1, v1, u2, v2)
+		createVertex(endX, endY - (rightBottom and radius or 0), 1, 1 - (rightBottom and radius or 0) / h, colors, u1, v1,
+			u2, v2)
 
 		if rightBottom then
 			if isRadiusBig then
@@ -236,14 +238,15 @@ do
 
 					local newX, newY = deltaX + coss * radius, deltaY + sinn * radius
 
-					createVertex(newX, newY, 1 - ((1 - coss) * radius) / w, 1 - ( (1 - sinn) * radius ) / h, colors, u1, v1, u2, v2)
+					createVertex(newX, newY, 1 - ((1 - coss) * radius) / w, 1 - ((1 - sinn) * radius) / h, colors, u1, v1,
+						u2, v2)
 				end
 			end
 
 			createVertex(endX - radius, endY, 1 - radius / w, 1, colors, u1, v1, u2, v2)
 		end
 
-		createVertex( (x + endX) * 0.5, endY, 0.5, 1, colors, u1, v1, u2, v2 )
+		createVertex((x + endX) * 0.5, endY, 0.5, 1, colors, u1, v1, u2, v2)
 
 		createVertex(x + (leftBottom and radius or 0), endY, (leftBottom and radius or 0) / w, 1, colors, u1, v1, u2, v2)
 
@@ -266,7 +269,7 @@ do
 			createVertex(x, endY - radius, 0, 1 - radius / h, colors, u1, v1, u2, v2)
 		end
 
-		createVertex(x, (y + endY) * 0.5, 0, 0.5, colors, u1, v1, u2, v2 )
+		createVertex(x, (y + endY) * 0.5, 0, 0.5, colors, u1, v1, u2, v2)
 
 		createVertex(x, y + (leftTop and radius or 0), 0, (leftTop and radius or 0) / h, colors, u1, v1, u2, v2)
 
@@ -301,7 +304,7 @@ do
 	local meshAdvanceVertex = mesh.AdvanceVertex
 	local meshTexCoord = mesh.TexCoord
 
----@diagnostic disable-next-line: deprecated
+	---@diagnostic disable-next-line: invisible
 	local bilinearInterpolation = paint.bilinearInterpolation
 
 	---Internal function used in pair with mesh.Begin(PRIMITIVE_POLYGON). Used for single batched rounded boxes.
@@ -322,7 +325,7 @@ do
 
 
 	local meshConstructor = Mesh
-	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
+	local meshDraw = FindMetaTable('IMesh') --[[@as IMesh]].Draw
 
 	local format = string.format
 
@@ -371,7 +374,6 @@ do
 				u1, v1, u2, v2, curviness
 			)
 		end
-
 	end
 
 	---@type table<string, IMesh>
@@ -395,15 +397,19 @@ do
 	---@param v2 number
 	---@param curviness number?
 	---@private Internal variable. Not meant to use outside
-	function roundedBoxes.roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2, curviness)
+	function roundedBoxes.roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom,
+											 material, u1, v1, u2, v2, curviness)
 		curviness = curviness or 2
-		local id = getId(radius, w, h, (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors, u1, v1, u2, v2, curviness)
+		local id = getId(radius, w, h,
+			(leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0), colors, u1,
+			v1, u2, v2, curviness)
 
 		local meshObj = cachedRoundedBoxMeshes[id]
 
 		if meshObj == nil then
 			meshObj = meshConstructor()
-			generateSingleMesh(createVertex, meshObj, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, u1, v1, u2, v2, curviness)
+			generateSingleMesh(createVertex, meshObj, radius, 0, 0, w, h, leftTop, rightTop, rightBottom, leftBottom,
+				colors, u1, v1, u2, v2, curviness)
 
 			cachedRoundedBoxMeshes[id] = meshObj
 		end
@@ -412,12 +418,12 @@ do
 		setField(matrix, 2, 4, y)
 
 		pushModelMatrix(matrix, true)
-			setMaterial(material)
-			meshDraw(meshObj)
+		setMaterial(material)
+		meshDraw(meshObj)
 		popModelMatrix()
 	end
 
-	timer.Create('paint.roundedBoxesGarbageCollector', 30, 0, function()
+	timer.Create('paint.roundedBoxesGarbageCollector' .. SysTime(), 30, 0, function()
 		for k, v in pairs(cachedRoundedBoxMeshes) do
 			v:Destroy()
 			cachedRoundedBoxMeshes[k] = nil
@@ -435,6 +441,7 @@ do
 	local incrementZ = paint.incrementZ
 
 	local color = Color
+	---@diagnostic disable-next-line: invisible
 	local bilinearInterpolation = paint.bilinearInterpolation
 
 	---@type paint.createVertexFunc
@@ -448,7 +455,7 @@ do
 				(colors[1].a + colors[2].a + colors[3].a + colors[4].a) / 4
 			)
 
-			prev1 = {x, y, blendedColor, z}
+			prev1 = { x, y, blendedColor, z }
 			return
 		end
 
@@ -460,7 +467,7 @@ do
 			bilinearInterpolation(u, v, colors[1].a, colors[2].a, colors[3].a, colors[4].a)
 		)
 		if prev2 == nil then
-			prev2 = {x, y, prefferedColor}
+			prev2 = { x, y, prefferedColor }
 			return
 		end
 
@@ -502,10 +509,12 @@ do
 	---@param leftBottom? boolean
 	---@param curviness number?
 	---@private Internal variable. Not meant to use outside
-	function roundedBoxes.roundedBoxExBatched(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, curviness)
+	function roundedBoxes.roundedBoxExBatched(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom,
+											  curviness)
 		prev1 = nil
 		prev2 = nil
-		generateSingleMesh(createVertex, nil, radius, x, y, x + w, y + h, leftTop, rightTop, rightBottom, leftBottom, colors, 0, 0, 1, 1, curviness)
+		generateSingleMesh(createVertex, nil, radius, x, y, x + w, y + h, leftTop, rightTop, rightBottom, leftBottom,
+			colors, 0, 0, 1, 1, curviness)
 	end
 end
 
@@ -538,7 +547,8 @@ do
 	---@param rightBottom? boolean
 	---@param leftBottom? boolean
 	---@overload fun(radius : number, x : number, y : number, w : number, h : number, colors : gradients, leftTop? : boolean, rightTop? : boolean, rightBottom? : boolean, leftBottom? : boolean, material? : IMaterial)
-	function roundedBoxes.roundedBoxEx(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2, curviness)
+	function roundedBoxes.roundedBoxEx(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material,
+									   u1, v1, u2, v2, curviness)
 		if colors[4] == nil then
 			colors = getColorTable(4, colors)
 		end
@@ -558,7 +568,8 @@ do
 		if batch.batching then
 			roundedBoxExBatched(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, curviness)
 		else
-			roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1, u2, v2, curviness)
+			roundedBoxExSingle(radius, x, y, w, h, colors, leftTop, rightTop, rightBottom, leftBottom, material, u1, v1,
+				u2, v2, curviness)
 		end
 	end
 
@@ -596,7 +607,7 @@ do
 		if createdTable == nil then return end
 
 		len = len + 1
-		createdTable[len] = {x = x, y = y, u = u1 + u * (u2 - u1), v = v1 + v * (v2 - v1)}
+		createdTable[len] = { x = x, y = y, u = u1 + u * (u2 - u1), v = v1 + v * (v2 - v1) }
 	end
 
 	local emptyTab = {} -- We do not use colors, so fuck them and place empty table here
@@ -617,10 +628,12 @@ do
 	---@param curviness number? Curviness of rounded box. Default is 2. Makes rounded box behave as with formula ``x^curviness+y^curviness=radius^curviness`` (this is circle formula btw. Rounded boxes are superellipses)
 	---@return {x : number, y: number, u: number, v: number}[] # table that is supposed to be put into surface.DrawPoly
 	---@see surface.DrawPoly
-	function roundedBoxes.generateDrawPoly(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, u1, v1, u2, v2, curviness)
+	function roundedBoxes.generateDrawPoly(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, u1, v1, u2, v2,
+										   curviness)
 		createdTable = {}
 		len = 0
-		generateSingleMesh(createVertex, nil, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, emptyTab, u1, v1, u2, v2, curviness)
+		generateSingleMesh(createVertex, nil, radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, emptyTab,
+			u1, v1, u2, v2, curviness)
 
 		local tab = createdTable
 
@@ -669,90 +682,90 @@ do
 		local radiusW, radiusH = halfW / radius, halfH / radius
 
 		meshBegin(iMesh, PRIMITIVE_POLYGON, 10)
-			meshPosition(x + halfW, y + halfH, 0) -- center
-			meshColor(
-				(color1R + color2R + color3R + color4R) * 0.25,
-				(color1G + color2G + color3G + color4G) * 0.25,
-				(color1B + color2B + color3B + color4B) * 0.25,
-				(color1A + color2A + color3A + color4A) * 0.25
-			)
-			meshTexCoord(0, radiusW, radiusH)
-			meshAdvanceVertex()
+		meshPosition(x + halfW, y + halfH, 0) -- center
+		meshColor(
+			(color1R + color2R + color3R + color4R) * 0.25,
+			(color1G + color2G + color3G + color4G) * 0.25,
+			(color1B + color2B + color3B + color4B) * 0.25,
+			(color1A + color2A + color3A + color4A) * 0.25
+		)
+		meshTexCoord(0, radiusW, radiusH)
+		meshAdvanceVertex()
 
-			meshPosition(x, y, 0)
-			meshColor(
-				color1R, color1G, color1B, color1A
-			)
-			meshTexCoord(0, leftTop and 0 or radiusW, leftTop and 0 or radiusH)
-			meshAdvanceVertex()
+		meshPosition(x, y, 0)
+		meshColor(
+			color1R, color1G, color1B, color1A
+		)
+		meshTexCoord(0, leftTop and 0 or radiusW, leftTop and 0 or radiusH)
+		meshAdvanceVertex()
 
-			meshPosition(x + halfW, y, 0)
-			meshColor(
-				(color1R + color2R) * 0.5,
-				(color1G + color2G) * 0.5,
-				(color1B + color2B) * 0.5,
-				(color1A + color2A) * 0.5
-			)
-			meshTexCoord(0, radiusW, 0)
-			meshAdvanceVertex()
+		meshPosition(x + halfW, y, 0)
+		meshColor(
+			(color1R + color2R) * 0.5,
+			(color1G + color2G) * 0.5,
+			(color1B + color2B) * 0.5,
+			(color1A + color2A) * 0.5
+		)
+		meshTexCoord(0, radiusW, 0)
+		meshAdvanceVertex()
 
-			meshPosition(x + w, y, 0)
-			meshColor(
-				color2R, color2G, color2B, color2A
-			)
-			meshTexCoord(0, rightTop and 0 or radiusW, rightTop and 0 or radiusH)
-			meshAdvanceVertex()
+		meshPosition(x + w, y, 0)
+		meshColor(
+			color2R, color2G, color2B, color2A
+		)
+		meshTexCoord(0, rightTop and 0 or radiusW, rightTop and 0 or radiusH)
+		meshAdvanceVertex()
 
-			meshPosition(x + w, y + halfH, 0)
-			meshColor(
-				(color3R + color2R) * 0.5,
-				(color3G + color2G) * 0.5,
-				(color3B + color2B) * 0.5,
-				(color3A + color2A) * 0.5
-			)
-			meshTexCoord(0, 0, radiusH)
-			meshAdvanceVertex()
+		meshPosition(x + w, y + halfH, 0)
+		meshColor(
+			(color3R + color2R) * 0.5,
+			(color3G + color2G) * 0.5,
+			(color3B + color2B) * 0.5,
+			(color3A + color2A) * 0.5
+		)
+		meshTexCoord(0, 0, radiusH)
+		meshAdvanceVertex()
 
-			meshPosition(x + w, y + w, 0)
-			meshColor(
-				color3R, color3G, color3B, color3A
-			)
-			meshTexCoord(0, rightBottom and 0 or radiusW, rightBottom and 0 or radiusH)
-			meshAdvanceVertex()
+		meshPosition(x + w, y + w, 0)
+		meshColor(
+			color3R, color3G, color3B, color3A
+		)
+		meshTexCoord(0, rightBottom and 0 or radiusW, rightBottom and 0 or radiusH)
+		meshAdvanceVertex()
 
-			meshPosition(x + halfW, y + w, 0)
-			meshColor(
-				(color3R + color4R) * 0.5,
-				(color3G + color4G) * 0.5,
-				(color3B + color4B) * 0.5,
-				(color3A + color4A) * 0.5
-			)
-			meshTexCoord(0, radiusW, 0)
-			meshAdvanceVertex()
+		meshPosition(x + halfW, y + w, 0)
+		meshColor(
+			(color3R + color4R) * 0.5,
+			(color3G + color4G) * 0.5,
+			(color3B + color4B) * 0.5,
+			(color3A + color4A) * 0.5
+		)
+		meshTexCoord(0, radiusW, 0)
+		meshAdvanceVertex()
 
-			meshPosition(x, y + w, 0)
-			meshColor(
-				color4R, color4G, color4B, color4A
-			)
-			meshTexCoord(0, leftBottom and 0 or radiusW, leftBottom and 0 or radiusH)
-			meshAdvanceVertex()
+		meshPosition(x, y + w, 0)
+		meshColor(
+			color4R, color4G, color4B, color4A
+		)
+		meshTexCoord(0, leftBottom and 0 or radiusW, leftBottom and 0 or radiusH)
+		meshAdvanceVertex()
 
-			meshPosition(x, y + halfW, 0)
-			meshColor(
-				(color1R + color4R) * 0.5,
-				(color1G + color4G) * 0.5,
-				(color1B + color4B) * 0.5,
-				(color1A + color4A) * 0.5
-			)
-			meshTexCoord(0, 0, radiusH)
-			meshAdvanceVertex()
+		meshPosition(x, y + halfW, 0)
+		meshColor(
+			(color1R + color4R) * 0.5,
+			(color1G + color4G) * 0.5,
+			(color1B + color4B) * 0.5,
+			(color1A + color4A) * 0.5
+		)
+		meshTexCoord(0, 0, radiusH)
+		meshAdvanceVertex()
 
-			meshPosition(x, y, 0)
-			meshColor(
-				color1R, color1G, color1B, color1A
-			)
-			meshTexCoord(0, leftTop and 0 or radiusW, leftTop and 0 or radiusH)
-			meshAdvanceVertex()
+		meshPosition(x, y, 0)
+		meshColor(
+			color1R, color1G, color1B, color1A
+		)
+		meshTexCoord(0, leftTop and 0 or radiusW, leftTop and 0 or radiusH)
+		meshAdvanceVertex()
 		meshEnd()
 
 		return iMesh
@@ -767,6 +780,11 @@ do
 
 		local vtfData = file.Open('materials/' .. name .. '.vtf', 'rb', 'MOD')
 		local newVtf = file.Open('paint/' .. name .. '.vtf', 'wb', 'DATA')
+
+		---@diagnostic disable-next-line: cast-type-mismatch
+		---@cast vtfData File
+		---@diagnostic disable-next-line: cast-type-mismatch
+		---@cast newVtf File
 
 		newVtf:Write(vtfData:Read(20))
 		newVtf:WriteULong(bit.bor(vtfData:ReadULong(), 4, 8))
@@ -791,11 +809,11 @@ do
 		return Material('../data/paint/' .. name)
 	end
 
-	local texCorner8 = getClampedTexture( 'gui/corner8')
-	local texCorner16 = getClampedTexture( 'gui/corner16')
-	local texCorner32 = getClampedTexture( 'gui/corner32')
-	local texCorner64 = getClampedTexture( 'gui/corner64')
-	local texCorner512 = getClampedTexture( 'gui/corner512')
+	local texCorner8 = getClampedTexture('gui/corner8')
+	local texCorner16 = getClampedTexture('gui/corner16')
+	local texCorner32 = getClampedTexture('gui/corner32')
+	local texCorner64 = getClampedTexture('gui/corner64')
+	local texCorner512 = getClampedTexture('gui/corner512')
 
 	local generateSimpleRoundedBox = roundedBoxes.generateSimpleRoundedBox
 
@@ -808,7 +826,7 @@ do
 	local pushModelMatrix = cam.PushModelMatrix
 	local popModelMatrix = cam.PopModelMatrix
 
-	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
+	local meshDraw = FindMetaTable('IMesh') --[[@as IMesh]].Draw
 	local setMaterial = render.SetMaterial
 	local format = string.format
 
@@ -848,7 +866,8 @@ do
 			colors = getColorTable(4, colors)
 		end
 
-		local id = getId(radius, w, h, colors[1], colors[2], colors[3], colors[4], (leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0) )
+		local id = getId(radius, w, h, colors[1], colors[2], colors[3], colors[4],
+			(leftTop and 8 or 0) + (rightTop and 4 or 0) + (rightBottom and 2 or 0) + (leftBottom and 1 or 0))
 
 		local meshObj = cachedSimpleRoundedBoxMeshes[id]
 
@@ -861,24 +880,29 @@ do
 		setField(matrix, 2, 4, y)
 
 		local material = texCorner8
-		if radius > 64 then material = texCorner512
-		elseif radius > 32 then material = texCorner64
-		elseif radius > 16 then material = texCorner32
-		elseif radius > 8 then material = texCorner16 end
+		if radius > 64 then
+			material = texCorner512
+		elseif radius > 32 then
+			material = texCorner64
+		elseif radius > 16 then
+			material = texCorner32
+		elseif radius > 8 then
+			material = texCorner16
+		end
 
 		pushModelMatrix(matrix, true)
-			setMaterial(material)
-			meshDraw(meshObj)
+		setMaterial(material)
+		meshDraw(meshObj)
 		popModelMatrix()
 	end
 
 	local drawSimpleRoundedBoxEx = roundedBoxes.drawSimpleRoundedBoxEx
 
 	function roundedBoxes.drawSimpleRoundedBox(radius, x, y, w, h, colors)
-		drawSimpleRoundedBoxEx(radius, x, y ,w, h, colors, true, true, true, true)
+		drawSimpleRoundedBoxEx(radius, x, y, w, h, colors, true, true, true, true)
 	end
 
-	timer.Create('paint.simpleRoundedBoxesGarbageCollector', 60, 0, function()
+	timer.Create('paint.simpleRoundedBoxesGarbageCollector' .. SysTime(), 60, 0, function()
 		for k, v in pairs(cachedSimpleRoundedBoxMeshes) do
 			v:Destroy()
 			cachedSimpleRoundedBoxMeshes[k] = nil

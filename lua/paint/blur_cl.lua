@@ -14,7 +14,7 @@
 ---local mat = paint.blur.getBlurMaterial()
 ---paint.rects.drawRect( 0, 0, 100, 64, color_white, mat, x / scrW, y / scrH, (x + 100) / scrW, (y + 64) / scrH )
 ---paint.roundedBoxes.roundedBox( 32, 120, 0, 120, 64, color_white, mat, (x + 120) / scrW, y / scrH, (x + 240) / scrW, (y + 64) / scrH )
----``` 
+---```
 
 ---@class paint.blur
 local blur = {}
@@ -92,18 +92,18 @@ do
 		setTexture(blurMaterial, '$basetexture', rt)
 
 		for i = 1, passes do
- 			setFloat(blurMaterial, '$blur', (i / passes) * blurStrength)
- 			recompute(blurMaterial)
+			setFloat(blurMaterial, '$blur', (i / passes) * blurStrength)
+			recompute(blurMaterial)
 
- 			-- if you don't update screenEffect texture
- 			-- Then for whatever reason gmodscreenspace
- 			-- shader won't update it's $basetexture
- 			-- resulting in broken passes
- 			-- and picture like it was only single pass instead of multiple.
+			-- if you don't update screenEffect texture
+			-- Then for whatever reason gmodscreenspace
+			-- shader won't update it's $basetexture
+			-- resulting in broken passes
+			-- and picture like it was only single pass instead of multiple.
 
- 			--ScreenEffect texutre is not used by blur at all.
- 			--Like literally, i have to update it only for gmodscreenspace shader to work.
- 			--That's tottally retarded.
+			--ScreenEffect texutre is not used by blur at all.
+			--Like literally, i have to update it only for gmodscreenspace shader to work.
+			--That's tottally retarded.
 			updateScreenEffectTexture()
 			drawScreenQuad()
 		end
@@ -126,26 +126,25 @@ do
 
 		copyRTToTex(texToBlur)
 
- 		pushRenderTarget(texToBlur)
- 			start2D()
- 				---@type fun(texture: ITexture, blurX: number, blurY: number, passes: number)
- 				local blurRT = expensive and blurRTExpensive or blurRTCheap
- 				blurRT(texToBlur, blurStrength, blurStrength, passes)
+		pushRenderTarget(texToBlur)
+		start2D()
+		---@type fun(texture: ITexture, blurX: number, blurY: number, passes: number)
+		local blurRT = expensive and blurRTExpensive or blurRTCheap
+		blurRT(texToBlur, blurStrength, blurStrength, passes)
 
-	 			overrideAlphaWriteEnable(true, true)
-	 			overrideColorWriteEnable(true, false)
+		overrideAlphaWriteEnable(true, true)
+		overrideColorWriteEnable(true, false)
 
-	 			setMaterial(whiteMaterial)
-	 			drawScreenQuad()
+		setMaterial(whiteMaterial)
+		drawScreenQuad()
 
-	 			overrideAlphaWriteEnable(false, true)
-	 			overrideColorWriteEnable(false, true)
-	  		end2D()
+		overrideAlphaWriteEnable(false, true)
+		overrideColorWriteEnable(false, true)
+		end2D()
 		popRenderTarget()
 
 		-- Even if this RT doesn't use alpha channel (IMAGE_FORMAT), it stil somehow uses alpha... BAD!
 		-- At least no clearDepth
-
 	end
 end
 
@@ -181,7 +180,7 @@ do
 		end
 	end
 
-	hook.Add('RenderScreenspaceEffects', 'paint.blur', function()
+	hook.Add('RenderScreenspaceEffects', 'paint.blur' .. SysTime(), function()
 		local time = textureTimes['default']
 		if time == nil then return end
 
@@ -221,7 +220,7 @@ do
 			textureTimes[id] = 0
 
 			pushRenderTarget(tex)
-				clear(0, 0, 0, 255)
+			clear(0, 0, 0, 255)
 			popRenderTarget()
 		end
 
@@ -256,7 +255,7 @@ do
 			})
 			textureMaterials[id] = mat
 
-			return mat-- requestBlur is arleady done.
+			return mat -- requestBlur is arleady done.
 		end
 
 		requestBlur(id, time, blurStrength, passes, expensive)
