@@ -113,44 +113,6 @@ do
 		meshAdvanceVertex()
 		meshEnd()
 	end
-
-	--Quad batching (NON TRIANGLE, used for only rects!)
-
-	local mat = Material('vgui/white')
-	local renderSetMaterial = render.SetMaterial
-
-	--- Draws batched rects (quads)
-	---@param array table # {x, y, endX, endY, color1, color2, color3, color4, ...}
-	---@private Internal variable. Not meant to use outside
-	function rects.drawBatchedRects(array)
-		renderSetMaterial(mat)
-		meshBegin(PRIMITIVE_QUADS, array[0] / 8)
-		for i = 1, array[0], 8 do
-			local x, y, endX, endY = array[i], array[i + 1], array[i + 2], array[i + 3]
-			local color1, color2, color3, color4 = array[i + 4], array[i + 5], array[i + 6], array[i + 7]
-
-			meshPosition(x, endY, 0)
-			meshColor(color4.r, color4.g, color4.b, color4.a)
-
-			meshAdvanceVertex()
-
-			meshPosition(x, y, 0)
-			meshColor(color1.r, color1.g, color1.b, color1.a)
-
-			meshAdvanceVertex()
-
-			meshPosition(endX, y, 0)
-			meshColor(color2.r, color2.g, color2.b, color2.a)
-
-			meshAdvanceVertex()
-
-			meshPosition(endX, endY, 0)
-			meshColor(color3.r, color3.g, color3.b, color3.a)
-
-			meshAdvanceVertex()
-		end
-		meshEnd()
-	end
 end
 
 do
@@ -165,45 +127,65 @@ do
 	---@param endX number
 	---@param endY number
 	---@param colors gradients # Color or colors used by gradient. Can be a single color, or a table of colors
-	function rects.drawBatchedRect(startX, startY, endX, endY, colors)
+	function rects.drawBatchedRect(startX, startY, endX, endY, colors, u1, v1, u2, v2, skew, topSize)
 		local tab = batch.batchTable
 		local len = tab[0]
 		local z = incrementZ()
+
+		local startTopX = startX + (skew or 0)
+		local endTopX = topSize and topSize > 0 and startTopX + topSize or endX + (skew or 0)
 
 		tab[len + 1] = startX
 		tab[len + 2] = endY
 		tab[len + 3] = z
 		tab[len + 4] = colors[4]
 
-		tab[len + 5] = startX
+		tab[len + 5] = startTopX
 		tab[len + 6] = startY
 		tab[len + 7] = colors[1]
 
-		tab[len + 8] = endX
+		tab[len + 8] = endTopX
 		tab[len + 9] = startY
 		tab[len + 10] = colors[2]
 
-		tab[len + 11] = startX
-		tab[len + 12] = endY
-		tab[len + 13] = z
-		tab[len + 14] = colors[4]
+		tab[len + 11] = u1
+		tab[len + 12] = v2
+		tab[len + 13] = u1
+		tab[len + 14] = v1
+		tab[len + 15] = u2
+		tab[len + 16] = v1
+		tab[len + 17] = batch.getDrawCell()
 
-		tab[len + 15] = endX
-		tab[len + 16] = startY
-		tab[len + 17] = colors[2]
 
-		tab[len + 18] = endX
+		tab[len + 18] = startX
 		tab[len + 19] = endY
-		tab[len + 20] = colors[3]
+		tab[len + 20] = z
+		tab[len + 21] = colors[4]
 
-		tab[0] = len + 20
+		tab[len + 22] = endX
+		tab[len + 23] = startY
+		tab[len + 24] = colors[2]
+
+		tab[len + 25] = endX
+		tab[len + 26] = endY
+		tab[len + 27] = colors[3]
+
+		tab[len + 28] = u1
+		tab[len + 29] = v2
+		tab[len + 30] = u2
+		tab[len + 31] = v1
+		tab[len + 32] = u2
+		tab[len + 33] = v2
+		tab[len + 34] = batch.getDrawCell()
+
+		tab[0] = len + 34
 	end
 end
 
 do
 	---@type {[string] : IMesh}
 	local cachedRectMeshes = {}
-	local defaultMat = Material('vgui/white')
+	local defaultMat = paint.defaultMaterial or Material('vgui/white')
 
 	--[[
 		Purpose: draws Rectangle on screen.
@@ -272,12 +254,10 @@ do
 	---@param v1 number
 	---@param u2 number
 	---@param v2 number
-	---@param skew number? sets elevation for top side of rect.
-	---@param topSize number? overrides size for top side of rect
+	---@param skew number sets elevation for top side of rect.
+	---@param topSize number overrides size for top side of rect
 	---@overload fun(x : number, y : number, w : number, h : number, colors: gradients, material?: Material)
 	function rects.drawSingleRect(x, y, w, h, colors, material, u1, v1, u2, v2, skew, topSize)
-		skew, topSize = skew or 0, topSize or 0
-
 		local id = getId(x, y, w, h, colors[1], colors[2], colors[3], colors[4], u1, v1, u2, v2, skew, topSize)
 
 		local mesh = cachedRectMeshes[id]
@@ -301,64 +281,10 @@ do
 	end)
 end
 
-do --- Rect specific batching
-	---Begins batching rectangles together to draw them all at once with greatly improved performance.
-	---
-	---This is primarily useful when drawing a large number of rectangles.
-	---
-	---All rectangles drawn after this function is called will be batched until stopBatching() is called.
-	---
-	---Note: Batching is not shared between different types of shapes.
-	function rects.startBatching()
-		rects.batching = {
-			[0] = 0
-		}
-		rects.isBatching = true
-	end
-
-	local drawBatchedRects = rects.drawBatchedRects
-
-	---Finishes batching rects and draws all rects created bny paint.rects.drawRect since startBatching() was called.
-	---@see rects.startBatching
-	function rects.stopBatching()
-		rects.isBatching = false
-
-		drawBatchedRects(rects.batching)
-	end
-
-	--- Adds rect (quad) to quad batching queue (rects.startBatching)
-	---@param x number
-	---@param y number
-	---@param w number
-	---@param h number
-	---@param colors Color[]
-	function rects.drawQuadBatchedRect(x, y, w, h, colors)
-		local tab = rects.batching
-		local len = tab[0]
-
-		tab[len + 1] = x
-		tab[len + 2] = y
-		tab[len + 3] = x + w
-		tab[len + 4] = y + h
-		---@diagnostic disable-next-line: assign-type-mismatch
-		tab[len + 5] = colors[1]
-		---@diagnostic disable-next-line: assign-type-mismatch
-		tab[len + 6] = colors[2]
-		---@diagnostic disable-next-line: assign-type-mismatch
-		tab[len + 7] = colors[3]
-		---@diagnostic disable-next-line: assign-type-mismatch
-		tab[len + 8] = colors[4]
-
-		tab[0] = len + 8
-	end
-end
-
 do
 	-- batching doesn't support materials at all!
 	local drawSingleRect = rects.drawSingleRect
 	local drawBatchedRect = rects.drawBatchedRect
-
-	local drawQuadBatchedRect = rects.drawQuadBatchedRect
 
 	local batch = paint.batch
 
@@ -387,24 +313,25 @@ do
 	---@overload fun(x : number, y : number, w : number, h : number, colors: gradients, material? : IMaterial) # Overloaded variant without UV's. They are set to 0, 0, 1, 1
 	function rects.drawRect(x, y, w, h, colors, material, u1, v1, u2, v2, skew, topSize)
 		if colors[4] == nil then
+			---@cast colors Color
+			---@diagnostic disable-next-line: cast-local-type
 			colors = getColorTable(4, colors)
 		end
+		---@cast colors paint.gradientsTable
 
 		if u1 == nil then
 			u1, v1 = 0, 0
 			u2, v2 = 1, 1
 		end
 
+		skew, topSize = skew or 0, topSize or 0
+
 		if batch.batching then
-			drawBatchedRect(x, y, x + w, y + h, colors)
+			drawBatchedRect(x, y, x + w, y + h, colors, u1, v1, u2, v2, skew, topSize)
 		else
-			if rects.isBatching then
-				drawQuadBatchedRect(x, y, w, h, colors)
-			else
-				drawSingleRect(x, y, w, h, colors, material, u1, v1, u2, v2, skew, topSize)
-			end
+			drawSingleRect(x, y, w, h, colors, material, u1, v1, u2, v2, skew, topSize)
 		end
 	end
 end
 
-_G.paint.rects = rects
+paint.rects = rects

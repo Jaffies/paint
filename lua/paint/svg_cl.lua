@@ -1,11 +1,11 @@
---- Currently WIP.  
---- Planned features are (strong means completed):  
---- 2. ** Support for rect **  
---- 3. ** Support for circle **  
---- 1. Support for defs and g  
---- 4. Support for path  
---- 5. Support for fill  
---- 6. Support for fill='linear-gradient'  
+--- Currently WIP.
+--- Planned features are (strong means completed):
+--- 2. ** Support for rect **
+--- 3. ** Support for circle **
+--- 1. Support for defs and g
+--- 4. Support for path
+--- 5. Support for fill
+--- 6. Support for fill='linear-gradient'
 --- 7. Support for ellipses in path
 ---@class paint.svg
 local svg = {}
@@ -22,10 +22,12 @@ do -- CSS Colors
 	---@return Color
 	local function fromHex(hex)
 		local ind = sub(hex, 1, 1) == '#' and 1 or 0
-		local r, g, b, a = hex:sub(1 + ind, 2 + ind), hex:sub(3 + ind, 4 + ind), hex:sub(5 + ind, 6 + ind), hex:sub(7 + ind, 8 + ind)
+		local r, g, b, a = hex:sub(1 + ind, 2 + ind), hex:sub(3 + ind, 4 + ind), hex:sub(5 + ind, 6 + ind),
+			hex:sub(7 + ind, 8 + ind)
 
 		---@diagnostic disable-next-line: cast-local-type
-		r, g, b, a = tonumber(r, 16) or 255, tonumber(g, 16) or 255, tonumber(b, 16) or 255, a ~= '' and tonumber(a, 16) or 255
+		r, g, b, a = tonumber(r, 16) or 255, tonumber(g, 16) or 255, tonumber(b, 16) or 255,
+			a ~= '' and tonumber(a, 16) or 255
 
 		return color(r, g, b, a)
 	end
@@ -51,9 +53,10 @@ do -- CSS Colors
 		['aqua'] = fromHex('#00ffff'),
 		--- Below are additional colors. They will be added here when i wont be lazy...
 		['aliceblue'] = fromHex('#F0F8FF'),
-		['pink'] = fromHex('#FFC0CB')
+		['pink'] = fromHex('#FFC0CB'),
 	}
 
+	---@diagnostic disable-next-line: inject-field
 	colors.fromHex = fromHex
 	svg.colors = colors
 end
@@ -156,10 +159,9 @@ do
 
 				return function(w, h)
 					---@diagnostic disable-next-line: missing-return-value
-					return xFunc( (w + h) / 2 )
+					return xFunc((w + h) / 2)
 				end
 			end
-
 		end
 	end
 
@@ -318,7 +320,8 @@ do
 			local strokeWidth = obj.strokeWidth(radius, radius)
 
 			if strokeWidth > 0 then
-				drawOutlinedCircle(x + settings.x, y + settings.y, radius, radius, stroke, strokeWidth, settings.circleVertexCount)
+				drawOutlinedCircle(x + settings.x, y + settings.y, radius, radius, stroke, strokeWidth,
+					settings.circleVertexCount)
 			end
 		end)
 	end
@@ -375,7 +378,7 @@ do
 	---@param settings paint.svg.settings?
 	---@return IMesh
 	function svg.generateIMesh(tab, settings)
-		settings = settings or {w = 0, h = 0, x = 0, y = 0}
+		settings = settings or { w = 0, h = 0, x = 0, y = 0 }
 		---@cast settings -?
 
 		startBatching()

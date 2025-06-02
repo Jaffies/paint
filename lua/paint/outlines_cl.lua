@@ -75,7 +75,6 @@ do
 			prevU = texU
 		end
 
-
 		local newX, newY
 
 		if u < 0.5 then
@@ -205,7 +204,6 @@ do
 	local setField = matrix.SetField
 
 	local setMaterial = render.SetMaterial
-	local defaultMat = Material('vgui/white')
 
 	local meshDraw = FindMetaTable('IMesh') --[[@as IMesh]].Draw
 
@@ -254,7 +252,7 @@ do
 		setField(matrix, 2, 4, y)
 
 		pushModelMatrix(matrix, true)
-		setMaterial(material or defaultMat)
+		setMaterial(material or paint.defaultMaterial)
 		meshDraw(meshObj)
 		popModelMatrix()
 	end
@@ -280,6 +278,7 @@ do
 	---@type number?
 	local z
 
+	local atan2 = math.atan2
 	local batch = paint.batch
 
 	---@param x number
@@ -301,6 +300,7 @@ do
 		local len = batchTable[0]
 
 		local color1, color2 = colors[1], colors[2]
+		local cell = batch.getDrawCell()
 
 		batchTable[len + 1] = prevX
 		batchTable[len + 2] = prevY
@@ -329,14 +329,32 @@ do
 		batchTable[len + 9] = y
 		batchTable[len + 10] = color1
 
-		batchTable[len + 11] = x
-		batchTable[len + 12] = y
-		batchTable[len + 13] = z
-		batchTable[len + 14] = color1
+		local texPrevU = 1 - (atan2((1 - prevV) - 0.5, prevU - 0.5) / (2 * math.pi) + 0.5)
+		local texU = 1 - (atan2((1 - v) - 0.5, u - 0.5) / (2 * math.pi) + 0.5)
 
-		batchTable[len + 15] = prevX
-		batchTable[len + 16] = prevY
-		batchTable[len + 17] = color2
+		if texPrevU and texPrevU > texU then
+			texU = texU + 1
+		else
+			texPrevU = texU
+		end
+
+		batchTable[len + 11] = texPrevU
+		batchTable[len + 12] = 0.02
+		batchTable[len + 13] = texPrevU
+		batchTable[len + 14] = 1
+		batchTable[len + 15] = texU
+		batchTable[len + 16] = 0.02
+		batchTable[len + 17] = cell
+
+
+		batchTable[len + 18] = x
+		batchTable[len + 19] = y
+		batchTable[len + 20] = z
+		batchTable[len + 21] = color1
+
+		batchTable[len + 22] = prevX
+		batchTable[len + 23] = prevY
+		batchTable[len + 24] = color2
 
 		prevX, prevY, prevU, prevV = x, y, u, v
 		do
@@ -353,11 +371,19 @@ do
 			end
 		end
 
-		batchTable[len + 18] = x
-		batchTable[len + 19] = y
-		batchTable[len + 20] = color2
+		batchTable[len + 25] = x
+		batchTable[len + 26] = y
+		batchTable[len + 27] = color2
 
-		batchTable[0] = len + 20
+		batchTable[len + 28] = texU
+		batchTable[len + 29] = 0.02
+		batchTable[len + 30] = texPrevU
+		batchTable[len + 31] = 1
+		batchTable[len + 32] = texU
+		batchTable[len + 33] = 1
+		batchTable[len + 34] = cell
+
+		batchTable[0] = len + 34
 	end
 
 	local incrementZ = paint.incrementZ
@@ -422,6 +448,8 @@ do
 	function outlines.drawOutlineEx(radius, x, y, w, h, leftTop, rightTop, rightBottom, leftBottom, colors, material, l,
 									t, r, b, curviness, inside, cornerness)
 		if colors[2] == nil then
+			---@cast colors Color
+			---@diagnostic disable-next-line: cast-local-type
 			colors = getColorTable(2, colors)
 		end
 
@@ -473,192 +501,4 @@ do
 	end
 end
 
-do
-	local meshConstructor = Mesh
-	local meshBegin = mesh.Begin
-	local meshEnd = mesh.End
-
-	local meshPosition = mesh.Position
-	local meshColor = mesh.Color
-	local meshAdvanceVertex = mesh.AdvanceVertex
-
-	local PRIMITIVE_TRIANGLE_STRIP = MATERIAL_TRIANGLE_STRIP
-
-	---Creates mesh for box outline
-	---@param x number
-	---@param y number
-	---@param endX number
-	---@param endY number
-	---@param colors {[1]: Color, [2]: Color}
-	---@param outlineL number
-	---@param outlineT number
-	---@param outlineR number
-	---@param outlineB number
-	---@return IMesh
-	---@private Internal variable, not meant to be used outside.
-	function outlines.generateBoxOutline(x, y, endX, endY, colors, outlineL, outlineT, outlineR, outlineB)
-		local meshObj = meshConstructor()
-
-		local innerR, innerG, innerB, innerA = colors[1].r, colors[1].g, colors[1].b, colors[1].a
-		local outerR, outerG, outerB, outerA = colors[2].r, colors[2].g, colors[2].b, colors[2].a
-
-		meshBegin(meshObj, PRIMITIVE_TRIANGLE_STRIP, 17)
-		meshPosition(x, y, 0)
-		meshColor(innerR, innerG, innerB, innerA)
-		meshAdvanceVertex()
-
-		meshPosition(x, y - outlineT, 0)
-		meshColor(outerR, outerG, outerB, outerA)
-		meshAdvanceVertex()
-
-		meshPosition(endX, y, 0)
-		meshColor(innerR, innerG, innerB, innerA)
-		meshAdvanceVertex()
-
-		meshPosition(endX, y - outlineT, 0)
-		meshColor(outerR, outerG, outerB, outerA)
-		meshAdvanceVertex()
-
-		meshPosition(endX, y, 0)
-		meshColor(innerR, innerG, innerB, innerA)
-		meshAdvanceVertex()
-
-		meshPosition(endX + outlineR, y, 0)
-		meshColor(outerR, outerG, outerB, outerA)
-		meshAdvanceVertex()
-
-		meshPosition(endX, endY, 0)
-		meshColor(innerR, innerG, innerB, innerA)
-		meshAdvanceVertex()
-
-		meshPosition(endX + outlineR, endY, 0)
-		meshColor(outerR, outerG, outerB, outerA)
-		meshAdvanceVertex()
-
-		meshPosition(endX, endY, 0)
-		meshColor(innerR, innerB, innerB, innerA)
-		meshAdvanceVertex()
-
-		meshPosition(endX, endY + outlineB, 0)
-		meshColor(outerR, outerB, outerB, outerA)
-		meshAdvanceVertex()
-
-		meshPosition(x, endY, 0)
-		meshColor(innerR, innerG, innerB, innerA)
-		meshAdvanceVertex()
-
-		meshPosition(x, endY + outlineB, 0)
-		meshColor(outerR, outerG, outerB, outerA)
-		meshAdvanceVertex()
-
-		meshPosition(x, endY, 0)
-		meshColor(innerR, innerG, innerB, innerA)
-		meshAdvanceVertex()
-
-		meshPosition(x - outlineL, endY, 0)
-		meshColor(outerR, outerG, outerB, outerA)
-		meshAdvanceVertex()
-
-		meshPosition(x, y, 0)
-		meshColor(innerR, innerG, innerB, innerA)
-		meshAdvanceVertex()
-
-		meshPosition(x - outlineL, y, 0)
-		meshColor(outerR, outerG, outerB, outerA)
-		meshAdvanceVertex()
-
-		meshPosition(x, y - outlineL, 0)
-		meshColor(outerR, outerG, outerB, outerA)
-		meshAdvanceVertex()
-		meshEnd()
-
-		return meshObj
-	end
-
-	local format = string.format
-
-	---@param w number
-	---@param h number
-	---@param color1 Color
-	---@param color2 Color
-	---@param outlineL number
-	---@param outlineT number
-	---@param outlineR number
-	---@param outlineB number
-	local function getId(w, h, color1, color2, outlineL, outlineT, outlineR, outlineB)
-		return format('%f;%f;%x%x%x%x;%x%x%x%x;%f;%f;%f;%f',
-			w, h,
-			color1.r, color1.g, color1.b, color1.a,
-			color2.r, color2.g, color2.b, color2.a,
-			outlineL, outlineT, outlineR, outlineB
-		)
-	end
-
-	local generateBoxOutline = outlines.generateBoxOutline
-
-	---@type {[string]: IMesh}
-	local cachedBoxOutlineMeshes = {}
-
-	local camPushModelMatrix = cam.PushModelMatrix
-	local camPopModelMatrix = cam.PopModelMatrix
-
-	local matrix = Matrix()
-	local setField = matrix.SetField
-
-	local meshDraw = FindMetaTable('IMesh') --[[@as IMesh]].Draw
-
-	local defaultMat = Material('vgui/white')
-	local renderSetMaterial = render.SetMaterial
-
-	local getColorTable = paint.getColorTable
-
-	---@param x number start X position
-	---@param y number start Y position
-	---@param w number width
-	---@param h number height
-	---@param colors Color | {[1]: Color,[2]: Color}
-	---@param outlineL number
-	---@param outlineT number
-	---@param outlineR number
-	---@param outlineB number
-	---@overload fun(x : number, y: number, w: number, h: number, colors: linearGradient, outlineThickness: number)
-	---@overload fun(x : number, y: number, w: number, h: number, colors: linearGradient, outlineX: number, outlineY: number)
-	function outlines.drawBoxOutline(x, y, w, h, colors, outlineL, outlineT, outlineR, outlineB)
-		if colors[2] == nil then
-			colors = getColorTable(2, colors)
-		end
-
-		if outlineT == nil then
-			outlineT, outlineR, outlineB = outlineL, outlineL, outlineL
-		elseif outlineR == nil then
-			outlineR, outlineB = outlineL, outlineT
-		end
-
-		local id = getId(w, h, colors[1], colors[2], outlineL, outlineT, outlineR, outlineB)
-
-		local mesh = cachedBoxOutlineMeshes[id]
-
-		if mesh == nil then
-			mesh = generateBoxOutline(0, 0, w, h, colors, outlineL, outlineT, outlineR, outlineB)
-			cachedBoxOutlineMeshes[id] = mesh
-		end
-
-		setField(matrix, 1, 4, x)
-		setField(matrix, 2, 4, y)
-
-		renderSetMaterial(defaultMat)
-
-		camPushModelMatrix(matrix, true)
-		meshDraw(mesh)
-		camPopModelMatrix()
-	end
-
-	timer.Create('paint.cachedBoxOutlineGarbageCollector' .. SysTime(), 60, 0, function()
-		for k, v in pairs(cachedBoxOutlineMeshes) do
-			v:Destroy()
-			cachedBoxOutlineMeshes[k] = nil
-		end
-	end)
-end
-
-_G.paint.outlines = outlines
+paint.outlines = outlines

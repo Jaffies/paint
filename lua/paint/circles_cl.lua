@@ -8,7 +8,7 @@
 ---But with a twist:
 ---1) They have gradients of course
 ---2) They can be sliced
----3) They support stencils 
+---3) They support stencils
 ---4) They can have various curviness (squircles/SwiftUI/IOS rounded square )
 ---@class paint.circles
 local circles = {}
@@ -17,7 +17,7 @@ local paint = paint
 ---@param num number
 ---@param power number
 ---@return number
-local function fpow( num, power )
+local function fpow(num, power)
 	if num > 0 then
 		return num ^ power
 	else
@@ -58,19 +58,20 @@ do
 		local deltaAngle = endAngle - startAngle
 
 		meshBegin(meshObj, PRIMITIVE_POLYGON, vertexCount + 2) -- vertexcount + center vertex
-			meshPosition(originVector)
-			meshColor(colors[1].r, colors[1].g, colors[1].b, colors[1].a)
-			meshTexCoord(0, 0.5, 0.5)
+		meshPosition(originVector)
+		meshColor(colors[1].r, colors[1].g, colors[1].b, colors[1].a)
+		meshTexCoord(0, 0.5, 0.5)
+		meshAdvanceVertex()
+
+		for i = 0, vertexCount do
+			local angle = startAngle + deltaAngle * i / vertexCount
+
+			meshPosition(fpow(cos(angle), curviness), fpow(sin(angle), curviness), 0)
+			meshColor(r, g, b, a)
+			meshTexCoord(0, fpow(sin(angle + rotation), curviness) / 2 + 0.5,
+				fpow(cos(angle + rotation), curviness) / 2 + 0.5)
 			meshAdvanceVertex()
-
-			for i = 0, vertexCount do
-				local angle = startAngle + deltaAngle * i / vertexCount
-
-				meshPosition(fpow(cos(angle), curviness), fpow(sin(angle), curviness), 0)
-				meshColor(r, g, b, a)
-				meshTexCoord(0, fpow(sin(angle + rotation), curviness) / 2 + 0.5, fpow(cos(angle + rotation), curviness) / 2 + 0.5)
-				meshAdvanceVertex()
-			end
+		end
 		meshEnd()
 
 		return meshObj
@@ -91,8 +92,9 @@ do
 	---@param endAngle number
 	---@param colors {[1]: Color, [2]: Color}
 	---@param curviness number
+	---@param rotation number
 	---@private Internal variable, not meant to be used outside.
-	function circles.generateMeshBatched(x, y, w, h, vertexCount, startAngle, endAngle, colors, curviness)
+	function circles.generateMeshBatched(x, y, w, h, vertexCount, startAngle, endAngle, colors, rotation, curviness)
 		local startColor, endColor = colors[1], colors[2]
 
 		local batchTable = batch.batchTable
@@ -101,8 +103,10 @@ do
 		local z = incrementZ()
 
 		local deltaAngle = endAngle - startAngle
+
+		local cell = batch.getDrawCell()
 		for i = 0, vertexCount - 1 do -- we make a triangle each time, we need to get next point, so yeah...
-			local indexI = i * 10
+			local indexI = i * 17
 
 			do -- 1st vertex (middle)
 				batchTable[len + 1 + indexI] = x
@@ -115,7 +119,7 @@ do
 				local angle = startAngle + deltaAngle * i / vertexCount
 
 				batchTable[len + 5 + indexI] = x + fpow(cos(angle), curviness) * w -- second vertex
-				batchTable[len + 6 + indexI] = y + fpow(sin(angle),curviness) * h
+				batchTable[len + 6 + indexI] = y + fpow(sin(angle), curviness) * h
 				batchTable[len + 7 + indexI] = endColor
 			end
 
@@ -124,11 +128,29 @@ do
 
 				batchTable[len + 8 + indexI] = x + fpow(cos(angle), curviness) * w -- second vertex
 				batchTable[len + 9 + indexI] = y + fpow(sin(angle), curviness) * h
-				batchTable[len + 10+ indexI] = endColor
+				batchTable[len + 10 + indexI] = endColor
+			end
+			--UV
+			do
+				batchTable[len + 11 + indexI] = 0.5
+				batchTable[len + 12 + indexI] = 0.5
+				--fpow(sin(angle + rotation), curviness) / 2 + 0.5,
+				--	fpow(cos(angle + rotation), curviness) / 2 + 0.5
+				batchTable[len + 13 + indexI] = fpow(sin(startAngle + deltaAngle * i / vertexCount + rotation), curviness) /
+					2 + 0.5
+				batchTable[len + 14 + indexI] = fpow(cos(startAngle + deltaAngle * i / vertexCount + rotation), curviness) /
+					2 + 0.5
+
+				batchTable[len + 15 + indexI] = fpow(sin(startAngle + deltaAngle * (i + 1) / vertexCount + rotation),
+					curviness) / 2 + 0.5
+				batchTable[len + 16 + indexI] = fpow(cos(startAngle + deltaAngle * (i + 1) / vertexCount + rotation),
+					curviness) / 2 + 0.5
+
+				batchTable[len + 17 + indexI] = cell
 			end
 		end
 
-		batchTable[0] = len + 10 * vertexCount
+		batchTable[0] = len + 17 * vertexCount
 	end
 end
 
@@ -162,13 +184,12 @@ do
 		)
 	end
 
-	local defaultMat = Material('vgui/white')
 	local renderSetMaterial = render.SetMaterial
 
 	local generateSingleMesh = circles.generateSingleMesh
 	local generateMeshBatched = circles.generateMeshBatched
 
-	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
+	local meshDraw = FindMetaTable('IMesh') --[[@as IMesh]].Draw
 
 	local getColorTable = paint.getColorTable
 
@@ -207,7 +228,7 @@ do
 		endAngle = endAngle * angleConverter
 
 		if batch.batching then
-			generateMeshBatched(x, y, w, h, vertexCount, startAngle, endAngle, colors, curviness)
+			generateMeshBatched(x, y, w, h, vertexCount, startAngle, endAngle, colors, rotation, curviness)
 		else
 			local id = getId(colors[1], colors[2], vertexCount, startAngle, endAngle, rotation, curviness)
 
@@ -218,19 +239,19 @@ do
 				cachedCircleMeshes[id] = meshObj
 			end
 
-			material = material or defaultMat
+			material = material or paint.defaultMaterial
 
 			setUnpacked(matrix,
-                w, 0, 0, x,
-                0, h, 0, y,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            )
+				w, 0, 0, x,
+				0, h, 0, y,
+				0, 0, 1, 0,
+				0, 0, 0, 1
+			)
 
-            renderSetMaterial(material)
+			renderSetMaterial(material)
 
 			pushModelMatrix(matrix, true)
-				meshDraw(meshObj)
+			meshDraw(meshObj)
 			popModelMatrix()
 		end
 	end
@@ -269,7 +290,8 @@ do
 	---@param curviness number
 	---@private Internal variable, not meant to be used outside .
 	---@return IMesh
-	function circles.generateOutlineMeshSingle(vertexCount, startAngle, endAngle, colors, startU, endU, outlineWidth, curviness)
+	function circles.generateOutlineMeshSingle(vertexCount, startAngle, endAngle, colors, startU, endU, outlineWidth,
+											   curviness)
 		local meshObj = meshConstructor()
 
 		local startR, startG, startB, startA = colors[1].r, colors[1].g, colors[1].b, colors[1].a
@@ -279,23 +301,23 @@ do
 
 		local startRadius = 1 - outlineWidth
 		meshBegin(meshObj, PRIMITIVE_TRIANGLE_STRIP, vertexCount * 2) -- result vertexcount = innerVertexes + outerVertexes. Count of inner veretxes = count of outer veretxes
-			for i = 0, vertexCount do
-				local percent = i / vertexCount
-				local angle = startAngle + deltaAngle * percent
-				local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
+		for i = 0, vertexCount do
+			local percent = i / vertexCount
+			local angle = startAngle + deltaAngle * percent
+			local sinn, coss = fpow(sin(angle), curviness), fpow(cos(angle), curviness)
 
-				local u = startU + percent * (endU - startU)
+			local u = startU + percent * (endU - startU)
 
-				meshPosition(coss * startRadius, sinn * startRadius, 0)
-				meshColor(startR, startG, startB, startA)
-				meshTexCoord(0, u, 0)
-				meshAdvanceVertex()
+			meshPosition(coss * startRadius, sinn * startRadius, 0)
+			meshColor(startR, startG, startB, startA)
+			meshTexCoord(0, u, 0)
+			meshAdvanceVertex()
 
-				meshPosition(coss, sinn, 0)
-				meshColor(endR, endG, endB, endA)
-				meshTexCoord(0, u, 1)
-				meshAdvanceVertex()
-			end
+			meshPosition(coss, sinn, 0)
+			meshColor(endR, endG, endB, endA)
+			meshTexCoord(0, u, 1)
+			meshAdvanceVertex()
+		end
 		meshEnd()
 
 		return meshObj
@@ -316,9 +338,12 @@ do
 	---@param y number
 	---@param radiusW number
 	---@param radiusH number
+	---@param startU number
+	---@param endU number
 	---@param outlineWidth number
 	---@param curviness number
-	function circles.generateOutlineMeshBatched(vertexCount, startAngle, endAngle, colors, x, y, radiusW, radiusH, outlineWidth, curviness)
+	function circles.generateOutlineMeshBatched(vertexCount, startAngle, endAngle, colors, x, y, radiusW, radiusH,
+												startU, endU, outlineWidth, curviness)
 		local startColor, endColor = colors[1], colors[2]
 
 		local batchTable = batch.batchTable
@@ -327,12 +352,12 @@ do
 		local z = incrementZ()
 
 		local deltaAngle = endAngle - startAngle
-
+		local cell = batch.getDrawCell()
 		for i = 0, vertexCount - 1 do
-			local indexI = i * 20
+			local indexI = i * 34
 
 			local angle = startAngle + deltaAngle * i / vertexCount
-
+			local u = startU + i / vertexCount * (endU - startU)
 			batchTable[len + 1 + indexI] = x + fpow(cos(angle), curviness) * radiusW
 			batchTable[len + 2 + indexI] = y + fpow(sin(angle), curviness) * radiusH
 			batchTable[len + 3 + indexI] = z
@@ -343,33 +368,52 @@ do
 			batchTable[len + 7 + indexI] = endColor
 
 			local angle2 = startAngle + deltaAngle * (i + 1) / vertexCount
-
+			local u2 = startU + (i + 1) / vertexCount * (endU - startU)
 			batchTable[len + 8 + indexI] = x + fpow(cos(angle2), curviness) * radiusW
 			batchTable[len + 9 + indexI] = y + fpow(sin(angle2), curviness) * radiusH
 			batchTable[len + 10 + indexI] = startColor
 
-			batchTable[len + 11 + indexI] = x + fpow(cos(angle2), curviness) * radiusW
-			batchTable[len + 12 + indexI] = y + fpow(sin(angle2), curviness) * radiusH
-			batchTable[len + 13 + indexI] = z
-			batchTable[len + 14 + indexI] = startColor
+			batchTable[len + 11 + indexI] = u
+			batchTable[len + 12 + indexI] = 0
+			batchTable[len + 13 + indexI] = u
+			batchTable[len + 14 + indexI] = 1
+			batchTable[len + 15 + indexI] = u2
+			batchTable[len + 16 + indexI] = 0
 
-			batchTable[len + 15 + indexI] = x + fpow(cos(angle), curviness) * (radiusW + outlineWidth)
-			batchTable[len + 16 + indexI] = y + fpow(sin(angle), curviness) * (radiusH + outlineWidth)
-			batchTable[len + 17 + indexI] = endColor
+			batchTable[len + 17 + indexI] = cell
 
-			batchTable[len + 18 + indexI] = x + fpow(cos(angle2), curviness) * (radiusW + outlineWidth)
-			batchTable[len + 19 + indexI] = y + fpow(sin(angle2), curviness) * (radiusH + outlineWidth)
-			batchTable[len + 20 + indexI] = endColor
+
+			batchTable[len + 18 + indexI] = x + fpow(cos(angle2), curviness) * radiusW
+			batchTable[len + 19 + indexI] = y + fpow(sin(angle2), curviness) * radiusH
+			batchTable[len + 20 + indexI] = z
+			batchTable[len + 21 + indexI] = startColor
+
+			batchTable[len + 22 + indexI] = x + fpow(cos(angle), curviness) * (radiusW + outlineWidth)
+			batchTable[len + 23 + indexI] = y + fpow(sin(angle), curviness) * (radiusH + outlineWidth)
+			batchTable[len + 24 + indexI] = endColor
+
+			batchTable[len + 25 + indexI] = x + fpow(cos(angle2), curviness) * (radiusW + outlineWidth)
+			batchTable[len + 26 + indexI] = y + fpow(sin(angle2), curviness) * (radiusH + outlineWidth)
+			batchTable[len + 27 + indexI] = endColor
+
+			batchTable[len + 28 + indexI] = u2
+			batchTable[len + 29 + indexI] = 0
+			batchTable[len + 30 + indexI] = u
+			batchTable[len + 31 + indexI] = 1
+			batchTable[len + 32 + indexI] = u2
+			batchTable[len + 33 + indexI] = 1
+
+			batchTable[len + 34 + indexI] = cell
 		end
 
-		batchTable[0] = len + 20 * vertexCount
+		batchTable[0] = len + 34 * vertexCount
 	end
 end
 
 do
 	local format = string.format
 
-	local meshDraw = FindMetaTable('IMesh')--[[@as IMesh]].Draw
+	local meshDraw = FindMetaTable('IMesh') --[[@as IMesh]].Draw
 	local pushModelMatrix = cam.PushModelMatrix
 	local popModelMatrix = cam.PopModelMatrix
 
@@ -389,9 +433,10 @@ do
 	---@param endU number
 	---@param outlineWidth number
 	---@param curviness number
-	---@return string id 
+	---@return string id
 	local function getId(color1, color2, vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
-		return format('%x%x%x%x;%x%x%x%x;%u;%f;%f;%f;%f;%f;%f', color1.r, color1.g, color1.b, color1.a, color2.r, color2.g, color2.b, color2.a, vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
+		return format('%x%x%x%x;%x%x%x%x;%u;%f;%f;%f;%f;%f;%f', color1.r, color1.g, color1.b, color1.a, color2.r,
+			color2.g, color2.b, color2.a, vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
 	end
 
 	---@param x number
@@ -407,27 +452,29 @@ do
 	---@param curviness number
 	---@param outlineWidth number # note, that this outlineWidth is between 0-1, cuz it's basically a percentage of radius
 	---@private Internal variable, not meant to be used outside.
-	function circles.drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth, curviness)
+	function circles.drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU,
+									   outlineWidth, curviness)
 		local id = getId(colors[1], colors[2], vertexCount, startAngle, endAngle, startU, endU, outlineWidth, curviness)
 
 		local meshObj = cachedCircleOutlineMeshes[id]
 
 		if meshObj == nil then
-			meshObj = generateOutlineMeshSingle(vertexCount, startAngle, endAngle, colors, startU, endU, outlineWidth, curviness)
+			meshObj = generateOutlineMeshSingle(vertexCount, startAngle, endAngle, colors, startU, endU, outlineWidth,
+				curviness)
 			cachedCircleOutlineMeshes[id] = meshObj
 		end
 
 		setUnpacked(matrix,
-            w, 0, 0, x,
-            0, h, 0, y,
-            0, 0, 1, 0,
-            0, 0, 0, 1
+			w, 0, 0, x,
+			0, h, 0, y,
+			0, 0, 1, 0,
+			0, 0, 0, 1
 		)
 
 		renderSetMaterial(material)
 
 		pushModelMatrix(matrix, true)
-			meshDraw(meshObj)
+		meshDraw(meshObj)
 		popModelMatrix()
 	end
 
@@ -440,7 +487,6 @@ do
 end
 
 do
-	local defaultMat = Material('vgui/white')
 	local angleConverter = math.pi / 180
 
 	local drawOutlineSingle = circles.drawOutlineSingle
@@ -465,7 +511,8 @@ do
 	---@param endU? number
 	---@param curviness number? Curviness ratio of circledOutline. Think of circledOutline defined as a formula like ``outlineRatio^2<=x^2+y^2<=1``. But replace 2 with curviness.
 	---For squircle like in IOS, curviness is 4, resulting in ``outlineRatio^4<=x^4+y^4<=1``
-	function circles.drawOutline(x, y, w, h, colors, outlineWidth, vertexCount, startAngle, endAngle, material, startU, endU, curviness)
+	function circles.drawOutline(x, y, w, h, colors, outlineWidth, vertexCount, startAngle, endAngle, material, startU,
+								 endU, curviness)
 		if colors[2] == nil then
 			colors = getColorTable(2, colors)
 		end
@@ -485,21 +532,23 @@ do
 			startU = 0
 			endU = 1
 		end
+		---@cast endU -?
 
-		material = material or defaultMat
+		material = material or paint.defaultMaterial
 
 		startAngle = startAngle * angleConverter
 		endAngle = endAngle * angleConverter
 
 
 		if batch.batching then
-			generateOutlineMeshBatched(vertexCount, startAngle, endAngle, colors, x, y, w, h, outlineWidth, curviness)
+			generateOutlineMeshBatched(vertexCount, startAngle, endAngle, colors, x, y, w, h, startU, endU, outlineWidth,
+				curviness)
 		else
 			outlineWidth = outlineWidth / max(w, h)
 			---@diagnostic disable-next-line: param-type-mismatch
-			drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth, curviness)
+			drawOutlineSingle(x, y, w, h, colors, vertexCount, startAngle, endAngle, material, startU, endU, outlineWidth,
+				curviness)
 		end
-
 	end
 end
 

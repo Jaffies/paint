@@ -31,14 +31,26 @@
 ---@field outlines paint.outlines # outline module, gives you ability to create hollow outlines with
 ---@field batch paint.batch Unfinished module of batching. Provides a way to create IMeshes
 ---@field blur paint.blur blur library, provides a nice way to retrieve a cheap blur textures/materials
----@field api paint.api
 ---@field circles paint.circles Circles! killer.
 ---@field svg paint.svg
 ---@field downsampling paint.downsampling
-local paint = {}
+local paint = paint or {}
 
----@alias gradients Color | {[1] : Color, [2]: Color, [3]: Color, [4]: Color, [5]: Color?}
----@alias linearGradient Color | {[1]: Color, [2]: Color}
+---@alias gradients Color | paint.gradientsTable
+---@alias linearGradient Color | paint.linearGradientsTable
+
+---@class paint.gradientsTable
+---@field [1] Color # top left
+---@field [2] Color # top right
+---@field [3] Color # bottom right
+---@field [4] Color # bottom left
+---@field [5] Color? # center (rounded boxes only)
+
+---@class paint.linearGradientsTable
+---@field [1] Color # inner
+---@field [2] Color # outer
+
+local DEFAULT_MATERIAL = paint.defaultMaterial or Material('vgui/white')
 
 do
 	-- this fixes rendering issues with batching
@@ -157,10 +169,18 @@ do
 			currentR, currentG, currentB, currentA = r, g, b, a
 			setUnpacked(vector, r / 255, g / 255, b / 255)
 			setVector(paintColoredMaterial, '$color', vector)
-			recompute(paintColoredMaterial)
 		end
 
 		return paintColoredMaterial
+	end
+
+	---@param color Color
+	---@param mat IMaterial
+	function paint.colorMaterial(color, mat)
+		local r, g, b, a = color.r, color.g, color.b, color.a
+
+		setUnpacked(vector, r / 255, g / 255, b / 255)
+		setVector(mat, '$color', vector)
 	end
 end
 
@@ -255,7 +275,6 @@ do
 
 		setField(matrix, 1, 4, state.translate_x)
 		setField(matrix, 2, 4, state.translate_y)
-
 		pushModelMatrix(matrix, true)
 
 		if state.scissor_enabled then
@@ -271,6 +290,9 @@ do
 		popModelMatrix()
 		setScissorRect(0, 0, 0, 0, false)
 	end
+
+	paint.beginVGUI = paint.startVGUI
+	paint.stopVGUI = paint.endVGUI
 
 	--- Simple helper function which makes bilinear interpolation
 	---@private Internal variable. Not meant to use outside
@@ -291,90 +313,15 @@ do
 end
 
 do
-	---@class paint.verts
-	---@field x number
-	---@field y number
-	---@field color Color?
-	---@field u number?
-	---@field v number? # If `u` component is not nil, then it has to be nil too.
-
-	local meshConstructor = Mesh
-	local meshBegin = mesh.Begin
-	local meshEnd = mesh.End
-	local meshPosition = mesh.Position
-	local meshColor = mesh.Color
-	local meshTexCoord = mesh.TexCoord
-	local meshAdvanceVertex = mesh.AdvanceVertex
-
-	local colorWhite = color_white
-	local PRIMITIVE_POLYGON = MATERIAL_POLYGON
-
-	---Generates IMesh in order to be cached. Uses modified PolygonVertex struct like paint.drawPoly.
-	---@param vertices paint.verts[] # Same structure as Struct/PolygonVertex, but also it has `color` component, which default to `color_white`
-	---@see surface.drawPoly
-	---@return IMesh
-	function paint.generatePoly(vertices)
-		local len = #vertices
-
-		local iMesh = meshConstructor()
-
-		meshBegin(iMesh, PRIMITIVE_POLYGON, len)
-		for i = 1, len do
-			local v = vertices[i]
-
-			local color = v.color or colorWhite
-			meshPosition(v.x, v.y, 0)
-			meshColor(color.r, color.g, color.b, color.a)
-
-			if v.u then
-				meshTexCoord(0, v.u, v.v)
-			end
-
-			meshAdvanceVertex()
-		end
-		meshEnd()
-
-		return iMesh
-	end
-
-	local defaultMat = Material('vgui/white')
-
-	local renderSetMaterial = render.SetMaterial
-
-	---Draws polygon, simmirarly to surface.DrawPoly, but made via paint library with color argument addition.
-	---@param vertices paint.verts[] # Same structure as Struct/PolygonVertex, but also it has `color` component, which default to `color_white`
-	---@param material IMaterial? Material which will be used. Default is ``vgui/white``
-	---@see surface.DrawPoly
-	function paint.drawPoly(vertices, material)
-		local len = #vertices
-
-		renderSetMaterial(material or defaultMat)
-
-		meshBegin(PRIMITIVE_POLYGON, len)
-		for i = 1, len do
-			local v = vertices[i]
-
-			local color = v.color or colorWhite
-			meshPosition(v.x, v.y, 0)
-			meshColor(color.r, color.g, color.b, color.a)
-
-			if v.u then
-				meshTexCoord(0, v.u, v.v)
-			end
-
-			meshAdvanceVertex()
-		end
-		meshEnd()
-	end
-end
-
-do
 	local tab = {}
 
 	-- When designing paint library i forgot that some third party libraries could use colors in pretty the same hacky way as i was
 	-- This func will move all color refs to outer table instead of mofifying color itself
-	---@param len integer
+	---@param len 2
 	---@param color Color
+	---@return paint.linearGradientsTable
+	---@overload fun(len : 4, color : Color) : paint.gradientsTable
+	---@overload fun(len : 5, color : Color) : paint.gradientsTable
 	function paint.getColorTable(len, color)
 		for i = 1, len do
 			tab[i] = color
@@ -384,4 +331,10 @@ do
 	end
 end
 
-_G.paint --[[@as paint]] = paint
+---@type IMaterial
+paint.defaultMaterial = DEFAULT_MATERIAL
+
+---@diagnostic disable-next-line: undefined-global
+if not MINIFIED then
+	_G.paint --[[@as paint]] = paint
+end

@@ -6,11 +6,17 @@ files = [
     'rounded_boxes',
     'outlines',
     'blur',
-    'circles'
+    'circles',
+    'api',
+    'svg',
+    'masks',
+    'downsampling'
 ]
 
 wrapper = """
 if SERVER then return AddCSLuaFile() end
+local paint = {}
+local MINIFIED = true
 """ # do at the end is because of 'end do'.join()
 
 contents = []
@@ -19,7 +25,7 @@ for i in files:
         contents.append(f.read())
 
 version = 1.12
-totalText = f'{wrapper} do {" end do ".join(contents)} end print("paint library loaded! Version is {version}!")\n print("Copyright @mikhail_svetov aka @jaffies")'
+totalText = f'{wrapper} do {" end do ".join(contents)} end return paint'
 
 with open('paint_minified_source.lua', 'w') as f:
     f.write(totalText)
