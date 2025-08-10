@@ -50,7 +50,6 @@ local paint = paint or {}
 ---@field [1] Color # inner
 ---@field [2] Color # outer
 
-local DEFAULT_MATERIAL = paint.defaultMaterial or Material('vgui/white')
 
 do
 	-- this fixes rendering issues with batching
@@ -331,8 +330,80 @@ do
 	end
 end
 
----@type IMaterial
-paint.defaultMaterial = DEFAULT_MATERIAL
+do
+	if not file.Exists('shaders/fxc/paintlib_shader_ps30.vcs', 'MOD') then -- Shadered white material with dithering, inline gma injection is used.
+		---Used to increase perf + disable gamma correction + dithering (to remove gradient banding)
+		local gma = [[R01BRAMAAAAAAAAAAGuaJGgAAAAAAHBhaW50bGliIHNoYWRlcgB7CgkiZGVzY3JpcHRpb24iOiAi
+		RGVzY3JpcHRpb24iLAoJInR5cGUiOiAic2VydmVyY29udGVudCIsCgkidGFncyI6IFsKCQkiYnVp
+		bGQiLAoJCSJmdW4iCgldCn0AQXV0aG9yIE5hbWUAAQAAAAEAAABtYXRlcmlhbHMvcGFpbnRsaWIu
+		dm10ABgCAAAAAAAAmVZRJgIAAABzaGFkZXJzL2Z4Yy9wYWludGxpYl9zaGFkZXJfcHMzMC52Y3MA
+		cQEAAAAAAAB+v8m+AwAAAHNoYWRlcnMvZnhjL3BhaW50bGliX3NoYWRlcl92czMwLnZjcwClAQAA
+		AAAAAGsVTFQAAAAAc2NyZWVuc3BhY2VfZ2VuZXJhbAp7CgkkcGl4c2hhZGVyICJwYWludGxpYl9z
+		aGFkZXJfcHMzMCIKICAgICR2ZXJ0ZXhzaGFkZXIgInBhaW50bGliX3NoYWRlcl92czMwIgogICAg
+		JGlnbm9yZXogICAgICAgICAgICAxCgoJJGJhc2V0ZXh0dXJlICIiCgkkdGV4dHVyZTEgICAgIiIK
+		CSR0ZXh0dXJlMiAgICAiIgoJJHRleHR1cmUzICAgICIiCgogICAgJHZlcnRleGNvbG9yIDEKICAg
+		ICR2ZXJ0ZXh0cmFuc2Zvcm0gMQoKICAgICRjMF94IDEuMAogICAgJGMwX3kgMS4wCiAgICAkYzBf
+		eiAxLjAKICAgICRjMF93IDEuMAoKCSRjb3B5YWxwaGEgICAgICAgICAgICAgICAgIDAKCSRhbHBo
+		YV9ibGVuZF9jb2xvcl9vdmVybGF5IDAKCSRhbHBoYV9ibGVuZCAgICAgICAgICAgICAgIDEKCSRs
+		aW5lYXJ3cml0ZSAgICAgICAgICAgICAgIDEKCSRsaW5lYXJyZWFkX2Jhc2V0ZXh0dXJlICAgIDAK
+		CSRsaW5lYXJyZWFkX3RleHR1cmUxICAgICAgIDAKCSRsaW5lYXJyZWFkX3RleHR1cmUyICAgICAg
+		IDAKCSRsaW5lYXJyZWFkX3RleHR1cmUzICAgICAgIDAKfQoGAAAAAQAAAAEAAAAAAAAAAAAAAAIA
+		AABL7ioNAAAAADAAAAD/////cQEAAAAAAAA5AQBATFpNQXgCAAAoAQAAXQAAAAEAAGiaXeCGv+yp
+		J8XEIyBnOYzWiWMQpnqHj+igQa0vpL1baF70QH9iOW9HonOew/fDtQ0kPKqJWJbqVX90l4oT5560
+		0ucYC+vkzTC+MAXy1dyXh/fDaWhxohmNcgEj6UoQYiP5PlkNWxnnBwvDjJkoe4IlhB14JNr6I2DJ
+		fJnrlUAXLK1UVCUTv9yXgEycLLBVpo2f8RCB1k9fwkm3xOaV/r5gZIl8pt/ZRYG94yfIc8zYXJTb
+		NYzKkhaX4aHOeA5Wo2bsB6n70OgUIcGXnLC2p8E/9aC+Eq42+5igB8u9fSu/S3hQ/+cgSOJbV/Sy
+		WbCBuMvAObVGerLYONnieZ9oUMzgpBVf9Drs+pm89xpKBKb3qyRL9WZVxCXcgSOvGvkeAty1k03x
+		AP////8GAAAAAQAAAAEAAAAAAAAAAAAAAAIAAAB3Q0KZAAAAADAAAAD/////pQEAAAAAAABtAQBA
+		TFpNQWQEAABcAQAAXQAAAAEAAGiVXjSFv+xjGapeOKoS4OTw07jJnFNIBxQKhv/vJQgnEuk6S8i9
+		iIOZ/cNnl7/kpbIBgyPggGrn4SUaCO4wMM2uaBqNFB4WPClr3W2FicbhjyonQ67Q6oYaEEu4Tu17
+		xE7pKjTBMD1skFqcZFlmquDhVT5cVKqouodVdly2UrW6k5isS7ZWYZJdaQfqVAWOF8Vq5R385tAH
+		sLGH5M+N+ECZpJv5SpYxCk1MLxSB0nv3/3Mz+jlCz3a8CEU/IWSl6lt4AVLtEofUP6eCTvQF2s2F
+		XRrtEpQHI9BAuEQBqct+RuetelPCxZdaqLxgeV6qhbshamEvUWNu1lDz4CfLHGsjA5VhQgXVBZdG
+		tTWxTpUQEvdF3wqhlSE5ESWuHP/KIIxPwCKCLSuH8E952Pdo4C+DRuaDvGtr1zHfgc1bFSBgKXLv
+		DUKxOcxozUD1ymvSW1FbAH+qNahLhAD/////PyQ5WA==]]
+		local gmaName = 'eventsui.gma'
+		file.Write(gmaName, util.Base64Decode(gma))
+		game.MountGMA('data/' .. gmaName)
+	end
+
+	paint.defaultMaterial = Material('paintlib')
+
+	local testRT = GetRenderTarget('paintlib_test_rt', 8, 8)
+
+	render.PushRenderTarget(testRT)
+
+	render.Clear(0, 0, 0, 0, true, true)
+
+	cam.Start2D()
+	surface.SetDrawColor(255, 255, 255)
+	surface.SetMaterial(paint.defaultMaterial)
+	surface.DrawTexturedRect(0, 0, 8, 8)
+	cam.End2D()
+
+	render.CapturePixels()
+	local r, g, b = render.ReadPixel(1, 1)
+
+	render.PopRenderTarget()
+
+
+	if r == 0 or g == 0 or b == 0 then
+		---Fallback for cases if custom shader does not work properly
+		paint.defaultMaterial = CreateMaterial('paintlib_no_shader', 'UnlitGeneric', {
+			['$basetexture'] = 'color/white',
+			['$model'] = 1,
+			['$translucent'] = 1,
+			['$vertexalpha'] = 1,
+			['$vertexcolor'] = 1,
+			['$gammacolorread'] = 1,
+			['$linearwrite'] = 1
+		})
+
+		if not IsValid(paint.defaultMaterial) then
+			paint.defaultMaterial = Material('vgui/white')
+		end
+	end
+end
 
 ---@diagnostic disable-next-line: undefined-global
 if not MINIFIED then

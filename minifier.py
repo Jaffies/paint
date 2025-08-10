@@ -7,9 +7,7 @@ files = [
     'outlines',
     'blur',
     'circles',
-    'api',
     'svg',
-    'masks',
     'downsampling'
 ]
 
