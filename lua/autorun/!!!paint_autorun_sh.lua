@@ -14,7 +14,6 @@ load('paint/outlines_cl.lua')
 load('paint/blur_cl.lua')
 load('paint/circles_cl.lua')
 load('paint/svg_cl.lua')
-load('paint/masks_cl.lua')
 load('paint/downsampling_cl.lua')
 
 --#endregion Load Examples
