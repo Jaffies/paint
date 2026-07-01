@@ -139,7 +139,6 @@ do
 		["$vertexcolor"] = 1
 	})
 
-	local recompute = paintColoredMaterial.Recompute
 	local setVector = paintColoredMaterial.SetVector
 	local setUnpacked = vector.SetUnpacked
 
@@ -176,7 +175,7 @@ do
 	---@param color Color
 	---@param mat IMaterial
 	function paint.colorMaterial(color, mat)
-		local r, g, b, a = color.r, color.g, color.b, color.a
+		local r, g, b = color.r, color.g, color.b
 
 		setUnpacked(vector, r / 255, g / 255, b / 255)
 		setVector(mat, '$color', vector)

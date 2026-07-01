@@ -110,7 +110,7 @@ do
 	function batch.copyMaterialToAtlas(atlasName, cellId, material)
 		local data, texture = batch.getAtlas(atlasName)
 
-		local uStart, vStart, uEnd, vEnd = batch.getAtlasCellPosition(atlasName, cellId)
+		local uStart, vStart = select(1, 2, batch.getAtlasCellPosition(atlasName, cellId))
 		local size, cellSize = data.size, data.cellSize
 
 		render.PushRenderTarget(texture)

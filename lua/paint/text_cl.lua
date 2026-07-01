@@ -1,9 +1,7 @@
 ---@class paint.text
-local text = {}
 
 ---@class paint.text.fonts
 ---@field [string] paint.text.font
-local fonts = {}
 
 do
 	---@class paint.text.font
@@ -15,6 +13,4 @@ end
 
 do
 	---surface.DrawText generation
-	local function generateEngineGlyphs(characterList, fontName)
-	end
 end

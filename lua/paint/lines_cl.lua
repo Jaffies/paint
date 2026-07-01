@@ -29,11 +29,8 @@ local paint = paint --[[@as paint]]
 local lines = {}
 
 --- batch table
-local batch = { [0] = 0 }
 
 local PRIMITIVE_LINES = MATERIAL_LINES
-local PRIMITIVE_LINE_STRIP = MATERIAL_LINE_STRIP
-local PRIMITIVE_LINE_LOOP = MATERIAL_LINE_LOOP
 
 do
 	-- define drawing functions
